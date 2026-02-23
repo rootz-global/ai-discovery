@@ -1,0 +1,114 @@
+{
+  "$schema": "https://rootz.global/ai/schemas/ai-feed-v1.json",
+  "version": "1.0.0",
+  "generated": "2026-02-19T00:00:00Z",
+  "source": {
+    "name": "Rootz Corp",
+    "url": "https://rootz.global",
+    "digitalName": "0xD36AAf65a91bB7dc69942cF6B6d1dBa4Ef171664"
+  },
+  "feedUrl": "https://rootz.global/ai/feed.json",
+  "htmlUrl": "https://rootz.global/blog",
+  "description": "News, updates, and insights from the Origin Economy. AI-optimized structured feed from Rootz Corp.",
+
+  "items": [
+    {
+      "id": "inblock-io-adopts-ai-discovery-2026-02-19",
+      "title": "inblock.io Adopts AI Discovery Standard — First External Grade A",
+      "url": "https://inblock.io/posts/2026-02-19-ai-discovery-standard.html",
+      "published": "2026-02-19T00:00:00Z",
+      "category": "adoption",
+      "tags": ["ai-discovery", "adoption", "aqua-protocol", "inblock", "grade-a", "three-tier"],
+      "summary": "inblock.io (Aqua Protocol) becomes the first external site to achieve Grade A (95/100) on the AI Discovery Standard scanner. Their full three-tier implementation includes discovery endpoint, knowledge base, and AI-optimized feed. The Aqua Protocol team highlights how the standard complements their work on verifiable data chains and decentralized notarization.",
+      "keyFacts": [
+        "First external site to achieve Grade A on the AI Discovery scanner (95/100)",
+        "Full three-tier implementation: discovery, knowledge base, and feed",
+        "Aqua Protocol builds sovereign data ownership through decentralized notarization",
+        "Standard described as providing 'verifiable, structured data rather than blind faith in platforms'",
+        "Specification is open-source (CC-BY-4.0) and vendor-neutral",
+        "5 sites now on the AI-readable web"
+      ],
+      "relatedConcepts": ["AI Discovery Standard", "Aqua Protocol", "Three-Tier Architecture", "Verifiable Data"]
+    },
+    {
+      "id": "ai-discovery-standard-launch-2026-02-18",
+      "title": "AI Discovery Standard: Scanner, Generator, and Prompt Library Now Live",
+      "url": "https://rootz.global/ai-discovery",
+      "published": "2026-02-18T00:00:00Z",
+      "category": "product-launch",
+      "tags": ["ai-discovery", "scanner", "generator", "prompts", "web-standard", "adoption"],
+      "summary": "Rootz launches the full AI Discovery Standard toolkit at rootz.global/ai-discovery. The page now includes an AI readability scanner that grades any website A-F, an interactive ai.json generator, and a library of copy-paste prompts for implementing the standard on Express, Next.js, WordPress, Apache/Nginx, and more. Cross-industry audit of 16 major websites reveals no site scores above D without the standard. On-chain adoption registry open on Polygon.",
+      "keyFacts": [
+        "AI readability scanner grades websites A-F based on 10 checks including /.well-known/ai",
+        "Interactive generator creates ready-to-deploy ai.json files",
+        "8 copy-paste AI prompts for implementing on any platform",
+        "16-site cross-industry audit: Google F/20, SEC F/10, Toyota D/45, rootz.global C/65",
+        "On-chain adoption registry: register with $10 ETH or 100 RVT on Polygon",
+        "Scanner fix: now correctly rejects HTML catch-all pages as false positives"
+      ],
+      "relatedConcepts": ["AI Discovery Standard", "The Signed Web", "/.well-known/ai"]
+    },
+    {
+      "id": "ai-readable-web-2026-02-15",
+      "title": "The AI-Readable Web: Introducing /.well-known/ai.json",
+      "url": "https://rootz.global/blog/ai-readable-web",
+      "published": "2026-02-15T00:00:00Z",
+      "category": "standard",
+      "tags": ["ai-readable", "well-known", "standard", "Plain-AI", "web-standards", "signed-data"],
+      "summary": "Rootz introduces the AI Discovery Standard -- a proposal for how websites should present structured knowledge to AI agents. The /.well-known/ai.json file tells AI agents who the organization is, what it does, and where to find machine-readable knowledge. Extends the Veritize Plain English + Plain AI dual-layer philosophy to the entire web. Data is cryptographically signed by the organization's blockchain Digital Name.",
+      "keyFacts": [
+        "Proposes /.well-known/ai.json as a new web standard for AI agent discovery",
+        "Three-tier architecture: discovery (ai.json), knowledge (knowledge.json), feed (feed.json)",
+        "JSON data signed by organization's blockchain Digital Name for verifiable origin",
+        "Complements existing standards (A2A, agents.json, robots.txt) with a knowledge focus",
+        "rootz.global is the first implementation",
+        "Standard published as CC-BY-4.0 open specification"
+      ],
+      "relatedConcepts": ["Plain English + Plain AI", "Digital Name", "Origin Squared"]
+    },
+    {
+      "id": "veritize-sovereign-architecture-2026-02",
+      "title": "Truth Matters: The End of the Lie -- Veritize Sovereign Architecture",
+      "url": "https://rootz.global/blog/made-in-usa-one",
+      "published": "2026-02-01T00:00:00Z",
+      "category": "partnership",
+      "tags": ["Veritize", "Made-in-USA-One", "supply-chain", "PUF", "molecular-receipt", "Truth-Matters"],
+      "summary": "How the Veritize Sovereign Architecture uses Rootz Data Wallets, physical fingerprinting (PUF), and blockchain to create the Molecular Receipt. Partnership with Made in USA One (OTC: USDW) / Verity One Ltd. Introduces Plain English + Plain AI dual-layer documentation, Ghost Labels for low-friction producer onboarding, and the Elemental Quartet identity passes (USA, V, Pearl, Terra).",
+      "keyFacts": [
+        "Made in USA One has 22 years of Made in USA certification experience",
+        "Steven Sprague serves as CTO of the Veritize architecture",
+        "Uses Physical Unclonable Functions (PUF) for molecular-level fingerprinting at 1200 DPI",
+        "Ghost Labels: generic QR stickers activated at speed of factory floor",
+        "Four identity passes: USA Pass (Origin), V Pass (Trust), Pearl Pass (Life), Terra Pass (Earth)",
+        "Any-Token Gas settlement via USD1/XRP/RVT on Root Network"
+      ],
+      "relatedConcepts": ["Data Wallet", "Origin Squared", "Plain English + Plain AI", "Molecular Receipt"]
+    },
+    {
+      "id": "ai-archive-beta-2026-01",
+      "title": "AI Archive Beta: Own Your AI Thinking",
+      "url": "https://rootz.global/blog/ai-archive-beta",
+      "published": "2026-01-15T00:00:00Z",
+      "category": "product-launch",
+      "tags": ["AI-Archive", "beta", "Claude", "ChatGPT", "intellectual-property", "proof-of-origin"],
+      "summary": "How Rootz Data Wallet technology transforms AI conversations into verifiable intellectual property with cryptographic proof of origin and ownership. Each archived conversation gets a genesis block with WHO, WHAT, WHEN, WHERE. Supports Claude Code (MCP), ChatGPT, Gemini, and Grok via browser extensions and desktop app.",
+      "keyFacts": [
+        "AI conversations are intellectual labor deserving IP protection",
+        "Genesis block records WHO, WHAT, WHEN, WHERE for each archive",
+        "Hardware-backed encryption via TPM/Secure Enclave",
+        "Blockchain timestamps provide proof of existence",
+        "Cross-platform: Claude Code MCP, ChatGPT, Gemini, Grok, Cursor",
+        "MCP Server with 25+ tools for AI assistant integration"
+      ],
+      "relatedConcepts": ["Data Wallet", "Genesis Block", "Origin Squared", "Secret", "Notes"]
+    }
+  ],
+
+  "_signature": {
+    "digitalName": "0xD36AAf65a91bB7dc69942cF6B6d1dBa4Ef171664",
+    "network": "polygon",
+    "contentHash": "sha256:1c55e89d38a250ae36eefb9779e9a9209c30dc308d0308c2cf815c1a39a88475",
+    "signedAt": "2026-02-19T00:00:00Z",
+    "method": "epistery-domain-v1"
+  }
+}

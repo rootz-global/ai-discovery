@@ -1,0 +1,279 @@
+{
+  "$schema": "https://rootz.global/ai/schemas/ai-knowledge-v1.json",
+  "version": "1.0.0",
+  "generated": "2026-02-18T00:00:00Z",
+  "organization": "Rootz Corp",
+  "digitalName": "0xD36AAf65a91bB7dc69942cF6B6d1dBa4Ef171664",
+
+  "summary": {
+    "oneLiner": "Rootz builds infrastructure where origin and ownership are native to data.",
+    "elevator": "Rootz Corp pioneered Data Wallets and Data Manufacturing -- the revolutionary concept that In the Future Everything has a Wallet. Every digital object gets its own cryptographic wallet with verifiable origin, ownership, access, and reliability. From AI conversations to supply chains to real estate, Rootz creates the infrastructure for a $300 trillion origin economy.",
+    "forAI": "Rootz Corp (rootz.global) is a blockchain infrastructure company building Data Wallets: smart-contract-based containers that give every digital object verifiable origin and ownership. Core primitives are Secret (encrypted data channel on Polygon), Notes (append-only feed), and Identity Contract (on-chain identity with key management). Corporate Digital Name: 0xD36AAf65a91bB7dc69942cF6B6d1dBa4Ef171664. Key applications: AI Archive (archiving AI conversations with proof of origin), Veritize supply chain provenance with Made in USA One (OTC: USDW), real estate property wallets, semiconductor traceability. Founded 2024 by Steven Sprague (former CEO, Wave Systems Corp -- 25+ years Trusted Computing)."
+  },
+
+  "glossary": [
+    {
+      "term": "Data Wallet",
+      "definition": "A cryptographic container pioneered by Rootz that gives every data object its own unique blockchain identity with built-in Ownership, Origin, Access, and Reliability. Implemented as a Secret (smart contract) with Notes (append-only feed). Not a cryptocurrency wallet -- a wallet for data provenance.",
+      "synonyms": ["Secret + Notes", "Data Container"],
+      "category": "core-primitive"
+    },
+    {
+      "term": "Digital Name",
+      "definition": "A unique blockchain address (0x...) that establishes a verifiable cryptographic foundation for individuals, businesses, or objects. Not an identity system -- a foundation for ownership and origin tracking. Like a DBA (Doing Business As) for the digital realm.",
+      "synonyms": ["Blockchain Identity", "On-Chain Name"],
+      "category": "core-primitive",
+      "example": "Rootz Corp Digital Name: 0xD36AAf65a91bB7dc69942cF6B6d1dBa4Ef171664"
+    },
+    {
+      "term": "Data Manufacturing",
+      "definition": "The systematic creation of authenticated data objects with built-in provenance, ownership verification, and immutable origin tracking. The process of transforming electrons into knowledge into wealth. Creates 15-150% value premiums across industries.",
+      "category": "process"
+    },
+    {
+      "term": "Origin Squared (Origin²)",
+      "definition": "WHO created it + WHO owns it. The two verifiable attributes that transform raw data into Knowledge and Knowledge into Wealth. Requires both origin (proof of creation) and ownership (proof of control).",
+      "category": "concept"
+    },
+    {
+      "term": "Secret (Channel)",
+      "definition": "The core Rootz primitive. A blockchain smart contract on Polygon that holds encrypted data with granular access controls. Everything in the Rootz system is built on Secrets. Each Secret is a channel that can hold Notes.",
+      "synonyms": ["Channel"],
+      "category": "core-primitive"
+    },
+    {
+      "term": "Notes (Feed)",
+      "definition": "An append-only log of entries attached to a Secret. Like a feed or journal. The mechanism for accumulating data over time within a Data Wallet. Notes are immutable once written -- they can only be added, never modified.",
+      "synonyms": ["Feed"],
+      "category": "core-primitive"
+    },
+    {
+      "term": "Identity Contract",
+      "definition": "An on-chain smart contract that represents a Digital Name. Manages authorized signers, key rotation, device authorization, and multi-party access. The RootzSigner interface maintains ethers.js Signer compatibility.",
+      "category": "core-primitive"
+    },
+    {
+      "term": "Genesis Block",
+      "definition": "The first entry in a Data Wallet, recording WHO created the data, WHAT was created, WHEN it was created (blockchain timestamp), and WHERE (device/domain). Immutable proof of origin that can never be backdated.",
+      "category": "concept"
+    },
+    {
+      "term": "Epistery",
+      "definition": "The name for the Rootz blockchain infrastructure layer. From Greek episteme (knowledge). The system that manages Secrets, Notes, and Identity Contracts on Polygon mainnet and Amoy testnet.",
+      "category": "platform"
+    },
+    {
+      "term": "RootzSigner",
+      "definition": "A sacred interface compatible with ethers.js Signer that bridges hardware security (TPM/Secure Enclave) with blockchain signing operations. Never break ethers.Signer compatibility.",
+      "category": "technical"
+    },
+    {
+      "term": "Everything has a Wallet",
+      "definition": "The foundational Rootz philosophy that every digital object should have its own cryptographic wallet. Not for cryptocurrency -- for proving origin, ownership, and enabling granular access control for any data.",
+      "category": "vision"
+    },
+    {
+      "term": "Plain English + Plain AI",
+      "definition": "The Veritize dual-layer documentation architecture. Plain English is the human-readable Markdown layer (readable by anyone, from a rancher in Montana to a customs agent in London). Plain AI is the machine-ingestible JSON/Schema layer. Every document has both layers -- the Twin Heart.",
+      "category": "architecture"
+    },
+    {
+      "term": "Molecular Receipt",
+      "definition": "The Veritize concept of binding a product's physical fingerprint (micro-scratch PUF) to a blockchain-anchored digital identity. Truth becomes a matter of physics, not trust.",
+      "category": "concept"
+    },
+    {
+      "term": "Ghost Label",
+      "definition": "A generic QR sticker with only a UUID that becomes a Sovereign Birth Certificate when activated by scanning with a USA Pass. Late-binding architecture that moves at the speed of the factory floor.",
+      "category": "product-feature"
+    },
+    {
+      "term": "AI Discovery Standard",
+      "definition": "An open web standard (/.well-known/ai) proposed by Rootz that makes websites readable, verifiable, and trustworthy for AI agents. Provides structured JSON with organization identity, knowledge base, and update feed — all cryptographically signed by the organization's blockchain Digital Name. The Signed Web.",
+      "synonyms": ["The Signed Web", "/.well-known/ai"],
+      "category": "standard"
+    },
+    {
+      "term": "Trust but Certify",
+      "definition": "The Made in USA One / Veritize model: not blind trust, but verified trust with cryptographic proof at the molecular level. Every claim backed by verifiable evidence.",
+      "category": "concept"
+    }
+  ],
+
+  "products": [
+    {
+      "name": "AI Archive",
+      "tagline": "Own Your AI Thinking",
+      "description": "Archives AI conversations from Claude, ChatGPT, Gemini, Grok with cryptographic proof of origin. Each archived conversation becomes a Data Wallet with a genesis block recording who created it, when, and on what platform. Used for IP protection, patent defense, methodology documentation, and research records.",
+      "status": "beta",
+      "url": "https://rootz.global/beta",
+      "integrations": ["Claude Code (MCP Server)", "Desktop V6", "Browser Extensions (Chrome)"],
+      "keyFeatures": [
+        "Blockchain timestamps for proof of existence",
+        "Hardware-backed encryption (TPM/Secure Enclave)",
+        "Cross-platform archiving (Claude, ChatGPT, Gemini, Grok, Cursor)",
+        "MCP Server with 25+ tools for AI assistants",
+        "Semantic search across archived sessions",
+        "Knowledge graph extraction from conversations"
+      ]
+    },
+    {
+      "name": "Desktop V6",
+      "description": "Desktop application for managing Digital Names, Secrets, Notes, and blockchain interactions. Integrates with TPM/Secure Enclave for hardware-backed key management. Local SQLite storage with blockchain anchoring.",
+      "status": "development",
+      "platform": "Electron + TypeScript",
+      "keyFeatures": [
+        "Local SQLite archive storage",
+        "Hardware-backed key management via TPM/Secure Enclave",
+        "MCP server integration for AI assistants",
+        "Wallet and gas management",
+        "Tab-based dashboard UI (Vite + TypeScript, no React)"
+      ]
+    },
+    {
+      "name": "AI Discovery Standard",
+      "tagline": "The Signed Web — Make Every Website AI-Readable",
+      "description": "An open web standard proposing /.well-known/ai as a structured, cryptographically signed endpoint that tells AI agents who an organization is, what it does, and proves it said it. Three-tier architecture: Discovery (ai.json), Knowledge (knowledge.json), Feed (feed.json). Includes an AI readability scanner that grades websites A-F, an interactive ai.json generator, and a library of copy-paste prompts for implementing on any platform. CC-BY-4.0 licensed, vendor-neutral, free to implement.",
+      "status": "active",
+      "url": "https://rootz.global/ai-discovery",
+      "keyFeatures": [
+        "AI Readability Scanner — grades any website A-F on AI readability",
+        "Interactive ai.json generator with live preview",
+        "AI Prompt Library — copy prompts for Express, Next.js, WordPress, Apache/Nginx",
+        "Three-tier data architecture: Discovery, Knowledge, Feed",
+        "Cryptographic content signing with SHA-256 hashes",
+        "On-chain adoption registry on Polygon",
+        "Open specification (CC-BY-4.0)",
+        "Cross-industry audit of 16 major websites showing the AI readability gap"
+      ]
+    },
+    {
+      "name": "Veritize Supply Chain",
+      "description": "Supply chain provenance platform built with Verity One Ltd / Made in USA One (OTC: USDW). Uses Physical Unclonable Functions (PUF) micro-scratch technology, TensorFlow AI fingerprinting, and blockchain-anchored compliance to create Molecular Receipts that are physically impossible to counterfeit.",
+      "status": "partnership",
+      "partner": "Verity One Ltd (OTC: USDW)",
+      "keyFeatures": [
+        "Physical fingerprinting (PUF) with 98.4% match threshold",
+        "Ghost Labels with late-binding QR activation",
+        "Doc-as-Code with Plain English + Plain AI layers",
+        "Elemental Quartet identity passes (USA, V, Pearl, Terra)",
+        "Any-Token Gas settlement (USD1/XRP/RVT)",
+        "BAA/TAA, FAR/DFARS, CAGE/SAM compliance mapping",
+        "Medical-grade auditability via Gitea + blockchain"
+      ]
+    }
+  ],
+
+  "team": [
+    {
+      "name": "Steven Sprague",
+      "role": "CEO & Co-Founder",
+      "bio": "Former CEO of Wave Systems Corp, a leading Trusted Computing developer. 25+ years of experience in hardware security, TPM technology, and enterprise security infrastructure. Pioneer of the concept that In the Future Everything has a Wallet. Currently also serves as CTO of Verity One Ltd / Made in USA One (OTC: USDW) for the Veritize Sovereign Architecture.",
+      "expertise": ["Trusted Computing", "TPM", "Hardware Security", "Blockchain Architecture", "Data Sovereignty"],
+      "prior": ["Wave Systems Corp (CEO)", "Rivetz Corp"],
+      "vision": "Every generation gets one infrastructure reset. Instead of bolting blockchain features onto legacy systems, build infrastructure where origin and ownership are native."
+    }
+  ],
+
+  "partnerships": [
+    {
+      "partner": "Verity One Ltd / Made in USA One",
+      "ticker": "OTC: USDW",
+      "description": "22-year-old Made in USA certification company. Operating entity for the Veritize Sovereign Architecture and Truth Matters manifesto. Steven Sprague serves as CTO.",
+      "focus": "Supply chain provenance, anti-counterfeiting, government procurement compliance",
+      "technology": "Veritize platform with PUF fingerprinting, Ghost Labels, Elemental Quartet passes"
+    },
+    {
+      "partner": "MITAN Global",
+      "description": "Strategic partner in international market development.",
+      "focus": "Global expansion of origin verification technology"
+    },
+    {
+      "partner": "Core Semi",
+      "description": "Hardware and semiconductor integration partner.",
+      "focus": "Chip-level ownership attestation, firmware security, semiconductor supply chain integrity"
+    }
+  ],
+
+  "market": {
+    "size": "$300 trillion",
+    "thesis": "Data with verifiable origin commands premium value. Every industry that relies on authentic data represents a market where origin verification creates measurable value premiums.",
+    "sectors": [
+      {
+        "name": "Supply Chain",
+        "premium": "15-150%",
+        "applications": ["Food traceability (farm to consumer)", "Luxury authentication", "Industrial parts verification", "Government procurement (BAA/TAA)"],
+        "examples": ["Montana grass-fed beef with Pearl Pass", "Made in USA certified hammers with USA Pass"]
+      },
+      {
+        "name": "Real Estate",
+        "applications": ["Property wallets", "HOA governance", "Title verification", "Building data manufacturing"],
+        "premium": "12-15% for buildings with verified data"
+      },
+      {
+        "name": "AI / Knowledge Work",
+        "applications": ["AI conversation archiving", "Methodology documentation", "IP protection", "Patent defense", "Research records"],
+        "value": "Proof of existence for intellectual property"
+      },
+      {
+        "name": "Semiconductors",
+        "marketSize": "$75 billion counterfeit problem",
+        "applications": ["Chip provenance", "Firmware integrity", "Gray market prevention"]
+      },
+      {
+        "name": "Agriculture",
+        "premium": "15-30% for horses, 10,000%+ ROI for cattle provenance",
+        "applications": ["Livestock genealogy", "Crop certification", "Nutrient density verification"]
+      },
+      {
+        "name": "Advertising",
+        "applications": ["Ad impression verification", "Content authenticity", "Origin-verified social media"]
+      }
+    ]
+  },
+
+  "technology": {
+    "blockchain": {
+      "network": "Polygon",
+      "environments": ["Mainnet (production)", "Amoy (testnet)"],
+      "library": "ethers.js v5"
+    },
+    "security": {
+      "hardwareIntegration": ["TPM 2.0", "Secure Enclave", "Hardware-backed keys"],
+      "encryption": "Dual-signature encryption (device key + blockchain key)",
+      "keyManagement": "RootzSigner interface (ethers.js Signer compatible -- sacred, never break)"
+    },
+    "architecture": {
+      "type": "Monorepo (rootz-v6/)",
+      "packages": 22,
+      "apps": 7,
+      "dashboard": "Vite + TypeScript (no React), tab-based UI",
+      "website": "Express.js serving static HTML",
+      "desktop": "Electron"
+    },
+    "smartContracts": {
+      "primitives": ["Secret (Channel)", "Notes (Feed)", "Identity Contract"],
+      "pattern": "Every data object is a Secret with Notes. Identity Contracts manage authorization. Secret = Channel, Notes = Feed."
+    }
+  },
+
+  "links": {
+    "website": "https://rootz.global",
+    "whitePaper": "https://rootz.global/white-paper",
+    "whitePaperPDF": "https://rootz.global/assets/documents/Rootz_Data_Wallet_White_Paper.pdf",
+    "blog": "https://rootz.global/blog",
+    "beta": "https://rootz.global/beta",
+    "aiDiscovery": "https://rootz.global/.well-known/ai.json",
+    "aiFeed": "https://rootz.global/ai/feed.json",
+    "contact": "https://rootz.global/contact"
+  },
+
+  "_signature": {
+    "digitalName": "0xD36AAf65a91bB7dc69942cF6B6d1dBa4Ef171664",
+    "network": "polygon",
+    "contentHash": "sha256:61f276a75cd7a74a292633c4a0f88b10ddee53996c03b8a3e8957dd2e3fe5e63",
+    "signedAt": "2026-02-18T00:00:00Z",
+    "method": "epistery-domain-v1",
+    "note": "Content hash computed over all fields excluding _signature (canonicalized, sorted keys). Full on-chain signing via Epistery domain keys in next release."
+  }
+}

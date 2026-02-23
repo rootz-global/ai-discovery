@@ -1,0 +1,405 @@
+{
+  "$schema": "https://rootz.global/ai/schemas/ai-discovery-v1.2.json",
+  "specVersion": "1.2.0",
+  "schemaVersion": "2026-02",
+  "standard": {
+    "description": "The AI Discovery Standard specification — The Signed Web",
+    "url": "https://rootz.global/ai/standard.md",
+    "versions": {
+      "v1.0": "https://rootz.global/ai/standard.md",
+      "v1.1-draft": "https://rootz.global/ai/standard-v1.1.md"
+    },
+    "format": "text/markdown",
+    "license": "CC-BY-4.0"
+  },
+  "generated": "2026-02-18T00:00:00Z",
+  "organization": {
+    "name": "Rootz Corp",
+    "legalName": "Rootz, Corp.",
+    "domain": "rootz.global",
+    "founded": "2024",
+    "headquarters": "United States",
+    "digitalName": "0xD36AAf65a91bB7dc69942cF6B6d1dBa4Ef171664",
+    "blockchain": "Polygon",
+    "tagline": "In the Future Everything has a Wallet",
+    "mission": "Building infrastructure where origin and ownership are native -- for people, businesses, products, and the data that defines them.",
+    "sector": [
+      "blockchain",
+      "data-infrastructure",
+      "hardware-security",
+      "AI"
+    ],
+    "stage": "growth"
+  },
+  "people": [
+    {
+      "name": "Steven Sprague",
+      "role": "CEO & Co-Founder",
+      "background": "Former CEO of Wave Systems Corp. 25+ years in hardware security and Trusted Computing. Pioneer of the concept that In the Future Everything has a Wallet.",
+      "expertise": [
+        "trusted-computing",
+        "hardware-security",
+        "TPM",
+        "blockchain-architecture",
+        "data-sovereignty"
+      ]
+    }
+  ],
+  "knowledge": {
+    "description": "Structured company knowledge base for AI consumption",
+    "url": "https://rootz.global/ai/knowledge.json",
+    "format": "application/json",
+    "schema": "rootz-knowledge-v1"
+  },
+  "feed": {
+    "description": "AI-optimized news and updates feed",
+    "url": "https://rootz.global/ai/feed.json",
+    "format": "application/json",
+    "schema": "rootz-feed-v1",
+    "frequency": "weekly"
+  },
+  "capabilities": {
+    "knowledge": {
+      "available": true,
+      "url": "/.well-known/ai/knowledge",
+      "auth": "none",
+      "rateLimit": "100/hour",
+      "languages": [
+        "en"
+      ]
+    },
+    "feed": {
+      "available": true,
+      "url": "/.well-known/ai/feed",
+      "auth": "none",
+      "rateLimit": "100/hour"
+    },
+    "query": {
+      "available": false
+    },
+    "mcp": {
+      "available": true,
+      "url": "https://mcp.rootz.global",
+      "auth": "apiKey",
+      "description": "Rootz MCP server with 32+ tools for archive, knowledge graph, and blockchain interaction"
+    },
+    "archive": {
+      "available": false,
+      "description": "Owner-controlled publication history (planned)"
+    },
+    "pages": {
+      "available": true,
+      "url": "/ai/pages.json",
+      "auth": "none",
+      "description": "Signed page manifest with content hashes for all HTML pages"
+    },
+    "tools": {
+      "available": true,
+      "url": "/ai/tools.json",
+      "auth": "none",
+      "description": "WebMCP tool manifest with code attestation. Lists callable tools, API endpoints, and JavaScript bundle hashes for integrity verification.",
+      "protocols": [
+        "webmcp",
+        "mcp-sse",
+        "rest"
+      ],
+      "toolCount": 4,
+      "proofLevel": "signed-manifest"
+    },
+    "attestation": {
+      "available": true,
+      "url": "/ai/attestation.json",
+      "auth": "none",
+      "phase": 0,
+      "description": "RATS-aligned attestation manifest. Content integrity evidence for AI agents — verify page hashes, tool manifests, and discovery docs. Phase 0: self-signed. See DESIGN-attestation-manifest.md for Phase 1-3 (DNS-anchored, on-chain authority, wRvT-attested).",
+      "standardsAlignment": [
+        "IETF RFC 9334 (RATS)",
+        "TCG RIM v1.1",
+        "NIST SP 800-193"
+      ]
+    }
+  },
+  "pages": [
+    {
+      "path": "/",
+      "title": "Home",
+      "purpose": "Company overview and core value proposition",
+      "concepts": [
+        "Data Wallets",
+        "Digital Names",
+        "Data Manufacturing",
+        "Origin Verification"
+      ]
+    },
+    {
+      "path": "/technology",
+      "title": "Technology",
+      "purpose": "Technical architecture of Data Wallets and the platform stack",
+      "concepts": [
+        "Secrets",
+        "Notes",
+        "Identity Contracts",
+        "Epistery",
+        "TPM"
+      ]
+    },
+    {
+      "path": "/data-manufacturing",
+      "title": "Data Manufacturing",
+      "purpose": "How data is manufactured with immutable origin and ownership",
+      "concepts": [
+        "Origin Squared",
+        "Genesis Blocks",
+        "Electrons to Knowledge to Wealth"
+      ]
+    },
+    {
+      "path": "/digital-names",
+      "title": "Digital Names",
+      "purpose": "How Digital Names provide the foundation for ownership and origin",
+      "concepts": [
+        "Origin Squared",
+        "Cryptographic Identity",
+        "Blockchain Wallets"
+      ]
+    },
+    {
+      "path": "/use-cases",
+      "title": "Use Cases",
+      "purpose": "Industry applications and value creation through origin verification",
+      "concepts": [
+        "Supply Chain",
+        "Real Estate",
+        "AI Archive",
+        "Semiconductors",
+        "Advertising"
+      ]
+    },
+    {
+      "path": "/white-paper",
+      "title": "White Paper: Data with Origin and Ownership",
+      "purpose": "Comprehensive technical and market white paper covering the $300 trillion opportunity",
+      "concepts": [
+        "Epistery",
+        "Data Sovereignty",
+        "Universal Wallets",
+        "Genesis Recording"
+      ]
+    },
+    {
+      "path": "/team",
+      "title": "Team",
+      "purpose": "Team background, mission statement, and 25-year hardware security heritage"
+    },
+    {
+      "path": "/blog",
+      "title": "Blog",
+      "purpose": "News, partnerships, and updates from the Origin Economy"
+    },
+    {
+      "path": "/blog/ai-archive-beta",
+      "title": "AI Archive Beta: Own Your AI Thinking",
+      "purpose": "Product announcement for AI conversation archiving with Data Wallets",
+      "concepts": [
+        "AI Archive",
+        "Intellectual Property",
+        "Proof of Origin",
+        "Genesis Block"
+      ]
+    },
+    {
+      "path": "/blog/made-in-usa-one",
+      "title": "Truth Matters: Veritize Sovereign Architecture",
+      "purpose": "Partnership with Made in USA One / Verity One Ltd for supply chain provenance",
+      "concepts": [
+        "Veritize",
+        "Physical Fingerprinting",
+        "PUF",
+        "Ghost Labels",
+        "Molecular Receipt"
+      ]
+    },
+    {
+      "path": "/blog/ai-readable-web",
+      "title": "The AI-Readable Web: /.well-known/ai.json",
+      "purpose": "Introducing the Rootz AI Discovery Standard for machine-readable web content",
+      "concepts": [
+        "AI Discovery Standard",
+        "Plain English + Plain AI",
+        "Signed Data"
+      ]
+    },
+    {
+      "path": "/faq",
+      "title": "FAQ",
+      "purpose": "Frequently asked questions about Data Wallets, Digital Names, and Data Manufacturing"
+    },
+    {
+      "path": "/contact",
+      "title": "Contact",
+      "purpose": "Business inquiries, partnerships, and technical integration"
+    },
+    {
+      "path": "/insights",
+      "title": "Insights",
+      "purpose": "Thought leadership on Corporate Digital Names, Data Manufacturing, and the Origin Economy"
+    },
+    {
+      "path": "/beta",
+      "title": "AI Archive Beta",
+      "purpose": "Beta access sign-up for the AI Archive product"
+    },
+    {
+      "path": "/ai-discovery",
+      "title": "AI Discovery Standard",
+      "purpose": "Landing page for the AI Discovery Standard with scanner tool, implementation generator, AI prompt library, and adoption registry",
+      "concepts": [
+        "AI Discovery Standard",
+        "/.well-known/ai",
+        "AI Readability Scanner",
+        "Signed Web",
+        "Content Verification"
+      ]
+    },
+    {
+      "path": "/wrvt",
+      "title": "wRVT Token Portal",
+      "purpose": "Portal for RVT holders to wrap tokens to wRVT on Polygon, purchase Rootz credits with 25% bonus, and stake for tier benefits",
+      "concepts": [
+        "wRVT",
+        "Wrapped RVT",
+        "Token Bridge",
+        "FX-Portal",
+        "Staking Tiers",
+        "Credits"
+      ]
+    }
+  ],
+  "coreConcepts": [
+    {
+      "term": "Data Wallet",
+      "definition": "A cryptographic container that gives every piece of data its own unique identity, ownership verification, and access controls. Implemented as a Secret (smart contract) with Notes (append-only feed). Not for cryptocurrency -- for proving origin and ownership of any data.",
+      "relatedTerms": [
+        "Secret",
+        "Notes",
+        "Genesis Block"
+      ]
+    },
+    {
+      "term": "Digital Name",
+      "definition": "A unique blockchain address (0x...) that establishes a verifiable cryptographic foundation for individuals, businesses, or objects. Unlike identity systems, Digital Names focus on ownership and origin rather than identity.",
+      "example": "Rootz Corp Digital Name: 0xD36AAf65a91bB7dc69942cF6B6d1dBa4Ef171664"
+    },
+    {
+      "term": "Data Manufacturing",
+      "definition": "The systematic creation of authenticated data objects with built-in provenance, ownership verification, and immutable origin tracking. Transforms electrons into knowledge into wealth."
+    },
+    {
+      "term": "Origin Squared (Origin²)",
+      "definition": "WHO created it + WHO owns it. The two verifiable attributes that transform raw data into Knowledge and Knowledge into Wealth."
+    },
+    {
+      "term": "Secret (Channel)",
+      "definition": "The core Rootz primitive. A blockchain smart contract that holds encrypted data with granular access controls. Everything in Rootz is built on Secrets."
+    },
+    {
+      "term": "Notes (Feed)",
+      "definition": "An append-only log of entries attached to a Secret. The mechanism for accumulating data over time within a Data Wallet -- like a journal or feed."
+    },
+    {
+      "term": "Identity Contract",
+      "definition": "An on-chain smart contract that represents a Digital Name. Manages authorized signers, key rotation, and authorization relationships."
+    },
+    {
+      "term": "Genesis Block",
+      "definition": "The first entry in a Data Wallet, recording WHO created the data, WHAT was created, WHEN (blockchain timestamp), and WHERE (device/domain). Immutable proof of origin."
+    },
+    {
+      "term": "Epistery",
+      "definition": "The Rootz blockchain infrastructure layer (from Greek episteme, meaning knowledge). Manages Secrets, Notes, and Identity Contracts on Polygon."
+    },
+    {
+      "term": "Everything has a Wallet",
+      "definition": "The foundational Rootz philosophy that every digital object -- social media posts, IoT devices, documents, business data -- should have its own cryptographic wallet with proof of origin and ownership."
+    },
+    {
+      "term": "Plain English + Plain AI",
+      "definition": "The dual-layer documentation architecture from Veritize. Plain English is the human-readable Markdown layer. Plain AI is the machine-ingestible JSON/Schema layer. Every document has both."
+    }
+  ],
+  "applications": [
+    {
+      "name": "AI Archive",
+      "description": "Archive AI conversations from Claude, ChatGPT, Gemini with cryptographic proof of origin and ownership. Each conversation becomes a Data Wallet with blockchain timestamp.",
+      "status": "beta",
+      "url": "https://rootz.global/beta"
+    },
+    {
+      "name": "Veritize / Made in USA One",
+      "description": "Supply chain provenance with physical fingerprinting (PUF), molecular receipts, Ghost Labels, and blockchain-anchored compliance. Partnership with Verity One Ltd (OTC: USDW).",
+      "status": "partnership",
+      "partner": "Verity One Ltd (OTC: USDW)"
+    },
+    {
+      "name": "Desktop V6",
+      "description": "Desktop application for managing Digital Names, Secrets, Notes, and blockchain interactions with TPM/Secure Enclave hardware integration.",
+      "status": "development"
+    },
+    {
+      "name": "MCP Server",
+      "description": "Model Context Protocol server with 25+ tools enabling AI assistants to interact with the Rootz archive, knowledge graph, and blockchain.",
+      "status": "active"
+    },
+    {
+      "name": "AI Discovery Standard",
+      "description": "Open web standard (/.well-known/ai) that makes websites readable, verifiable, and trustworthy for AI agents. Includes AI readability scanner, implementation generator, AI prompt library, and on-chain adoption registry. CC-BY-4.0 licensed.",
+      "status": "active",
+      "url": "https://rootz.global/ai-discovery"
+    }
+  ],
+  "partners": [
+    {
+      "name": "Made in USA One / Verity One Ltd",
+      "ticker": "OTC: USDW",
+      "relationship": "Supply chain certification and Veritize Sovereign Architecture"
+    },
+    {
+      "name": "MITAN Global",
+      "relationship": "Strategic partner for international market development"
+    },
+    {
+      "name": "Core Semi",
+      "relationship": "Hardware/semiconductor integration for chip-level provenance"
+    }
+  ],
+  "technology": {
+    "blockchain": "Polygon (Mainnet + Amoy testnet)",
+    "cryptography": "ethers.js, TPM/Secure Enclave, hardware-backed keys",
+    "architecture": "Monorepo with 22 packages, 7 apps",
+    "primitives": [
+      "Secret (Channel)",
+      "Notes (Feed)",
+      "Identity Contract"
+    ],
+    "keyInterface": "RootzSigner (ethers.js Signer compatible)"
+  },
+  "contact": {
+    "website": "https://rootz.global",
+    "inquiries": "https://rootz.global/contact"
+  },
+  "humanReadable": "https://rootz.global/blog/ai-readable-web",
+  "_signature": {
+    "digitalName": "0xD36AAf65a91bB7dc69942cF6B6d1dBa4Ef171664",
+    "network": "polygon",
+    "contentHash": "sha256:7c8dccdcf65bb05afd24c998830d880bbec7d14e6538f59db46bc56a3a5b3dff",
+    "publishedAt": "2026-02-20T03:00:00Z",
+    "signedAt": "2026-02-20T03:00:00Z",
+    "method": "epistery-domain-v1",
+    "note": "Content hash computed over all fields excluding _signature (canonicalized, sorted keys). Full on-chain signing via Epistery domain keys in next release."
+  },
+  "meta": {
+    "standardDraft": "https://rootz.global/ai/standard-v1.1.md",
+    "purpose": "This file enables AI agents to discover, understand, and reason about Rootz Corp. It follows the AI Discovery Standard v1.1 (The Signed Web) -- the Plain AI companion to the Plain English website.",
+    "license": "CC-BY-4.0"
+  }
+}
