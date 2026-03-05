@@ -1,0 +1,333 @@
+/**
+ * Rootz AI Discovery — Admin Styles
+ *
+ * @package Rootz_AI_Discovery
+ */
+
+.rootz-admin-wrap {
+    max-width: 900px;
+}
+
+.rootz-admin-wrap h1 {
+    font-size: 1.8em;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.rootz-subtitle {
+    font-size: 14px;
+    color: #646970;
+    margin: -8px 0 16px;
+}
+
+.rootz-info-box {
+    background: #f0f6fc;
+    border: 1px solid #c3d9f0;
+    border-left: 4px solid #2271b1;
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin: 20px 0;
+    max-width: 700px;
+}
+
+.rootz-info-box h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: #1d2327;
+}
+
+.rootz-info-box p {
+    margin: 4px 0;
+    font-size: 13px;
+    color: #50575e;
+}
+
+.rootz-footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid #dcdcde;
+    color: #646970;
+    font-size: 13px;
+}
+
+.rootz-footer a {
+    color: #2271b1;
+    text-decoration: none;
+}
+
+.rootz-footer a:hover {
+    text-decoration: underline;
+}
+
+/* ── AI Data Viewer Styles ─────────────────────────────────────────── */
+
+.rootz-viewer-intro {
+    margin-bottom: 20px;
+}
+
+.rootz-viewer-intro h2 {
+    font-size: 1.4em;
+    margin: 0 0 8px;
+}
+
+.rootz-viewer-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-left: 4px solid #2271b1;
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    max-width: 860px;
+}
+
+.rootz-viewer-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.rootz-viewer-card-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.rootz-viewer-icon {
+    margin-right: 6px;
+}
+
+.rootz-viewer-endpoint code {
+    background: #f0f0f1;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #50575e;
+}
+
+.rootz-viewer-explain {
+    font-size: 13px;
+    color: #646970;
+    margin: 0 0 12px;
+    font-style: italic;
+}
+
+.rootz-viewer-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.rootz-viewer-table th {
+    text-align: left;
+    padding: 6px 10px;
+    border-bottom: 2px solid #dcdcde;
+    color: #50575e;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rootz-viewer-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #f0f0f1;
+    vertical-align: top;
+}
+
+.rootz-viewer-table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+.rootz-viewer-label {
+    font-weight: 600;
+    color: #1d2327;
+    white-space: nowrap;
+    width: 140px;
+}
+
+.rootz-viewer-summary {
+    color: #646970;
+    max-width: 400px;
+}
+
+.rootz-viewer-text-block {
+    background: #f6f7f7;
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #50575e;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.rootz-viewer-count {
+    display: inline-block;
+    background: #dcdcde;
+    color: #50575e;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 8px;
+    border-radius: 10px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.rootz-viewer-tag {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #f0f0f1;
+    color: #50575e;
+    margin-right: 4px;
+}
+
+.rootz-tag-green {
+    background: #edfaef;
+    color: #00a32a;
+}
+
+.rootz-tag-red {
+    background: #fcf0f1;
+    color: #d63638;
+}
+
+.rootz-viewer-more {
+    font-size: 12px;
+    color: #646970;
+    font-style: italic;
+    margin: 4px 0 0 10px;
+}
+
+.rootz-viewer-hint {
+    background: #f0f6fc;
+    border-left: 3px solid #2271b1;
+    padding: 8px 14px;
+    margin: 12px 0;
+    font-size: 13px;
+    color: #50575e;
+    border-radius: 2px;
+}
+
+.rootz-viewer-json {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 12px;
+    line-height: 1.5;
+    max-height: 400px;
+    margin-top: 8px;
+}
+
+.rootz-viewer-raw details summary {
+    cursor: pointer;
+    font-size: 13px;
+    color: #2271b1;
+    padding: 4px 0;
+}
+
+.rootz-viewer-raw details summary:hover {
+    text-decoration: underline;
+}
+
+.rootz-viewer-card h4 {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 16px 0 8px;
+    color: #1d2327;
+}
+
+/* ── Account & Wallet Styles ──────────────────────────────────────── */
+
+.rootz-status-connected {
+    color: #00a32a;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.rootz-status-disconnected {
+    color: #996800;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* ── Help Tooltips ────────────────────────────────────────────────── */
+
+.rootz-help-toggle {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2271b1;
+    background: #f0f6fc;
+    border: 1px solid #c3d9f0;
+    border-radius: 50%;
+    cursor: pointer;
+    vertical-align: middle;
+    margin-left: 6px;
+    padding: 0;
+}
+
+.rootz-help-toggle:hover,
+.rootz-help-toggle:focus {
+    background: #2271b1;
+    color: #fff;
+    outline: 2px solid #2271b1;
+    outline-offset: 1px;
+}
+
+.rootz-help-tip {
+    display: none;
+    background: #f0f6fc;
+    border: 1px solid #c3d9f0;
+    border-left: 3px solid #2271b1;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin: 8px 0 4px;
+    font-size: 13px;
+    color: #50575e;
+    line-height: 1.5;
+    max-width: 500px;
+}
+
+.rootz-help-tip.rootz-help-visible {
+    display: block;
+}
+
+.rootz-help-tip strong {
+    color: #1d2327;
+}
+
+/* ── Quick Start Guide ────────────────────────────────────────────── */
+
+.rootz-quickstart {
+    background: linear-gradient(135deg, #f0faf0 0%, #fff 100%);
+    border: 1px solid #b8e6be;
+    border-left: 4px solid #00a32a;
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    max-width: 860px;
+}
+
+.rootz-quickstart h3 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.rootz-quickstart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
