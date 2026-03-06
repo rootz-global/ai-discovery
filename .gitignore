@@ -1,0 +1,3 @@
+plugin/vendor/
+*.zip
+.DS_Store

@@ -1,0 +1,12 @@
+{
+    "name": "rootz/ai-discovery",
+    "description": "Rootz AI Discovery WordPress plugin - vendor dependencies",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "simplito/elliptic-php": "^1.0",
+        "simplito/bn-php": "^1.0",
+        "simplito/bigint-wrapper-php": "^1.0",
+        "kornrunner/keccak": "^1.0"
+    }
+}

@@ -118,28 +118,37 @@ Test any site: **https://discover.rootz.global/scanner/**
 
 ## WordPress Plugin
 
-The `wordpress-plugin/` directory contains a WordPress plugin that automatically generates `/.well-known/ai` from existing WordPress content. No manual JSON editing required.
+The `plugin/` directory contains the full source for the **Rootz AI Discovery** WordPress plugin (v2.2.1). It automatically generates `/.well-known/ai` from existing WordPress content — no manual JSON editing required.
 
 - **Plugin Wallet** — Generates a secp256k1 keypair stored AES-256-CBC encrypted. Signs all endpoints automatically.
 - **Per-Page Content Hashes** — SHA-256 hash of every page included in the manifest
-- **7 Admin Tabs** — Identity, Content, Policies, Tools, Analytics, What AI Sees, Account & Signing
+- **8 Admin Tabs** — Identity, Content, Policies, Tools, Analytics, What AI Sees, Account & Signing, Quick Start
+- **Adoption Registry** — Track and display sites implementing the AI Discovery Standard
 - **AI Access Metrics** — Tracks which AI agents visit, classifies by type, reports in Analytics tab
 - **7 AI Tools** — Including `verifyPageHash` for content integrity verification
 - **Self-Scoring Status** — 100-point scale across 8 categories with A-F letter grades
 - **WebMCP Support** — Browser-native tool registration for Chrome 146+
+- **Content Endpoint** — Structured pages, posts, media with assertion types (factual, editorial, creative-work)
+- **Auto-Updates** — Self-hosted update check; skips when installed from WordPress.org
+
+Requires WordPress 6.0+, PHP 7.4+. See [`plugin/readme.txt`](plugin/readme.txt) for full changelog.
 
 ## Repository Structure
 
 ```
-spec/                   The AI Discovery Standard (CC-BY-4.0)
-  standard.md           Full specification (v1.0.0-draft)
-  ai.json               Reference implementation (rootz.global)
-  knowledge.json        Reference knowledge endpoint
-  feed.json             Reference feed endpoint
+spec/                        The AI Discovery Standard (CC-BY-4.0)
+  standard-v1.0.md           Specification v1.0
+  standard-v1.1.md           Specification v1.1
+  standard-v1.2.md           Specification v1.2 (current)
 
-wordpress-plugin/       WordPress plugin (installable zip)
-  README.md             Features, installation, endpoints
-  rootz-ai-discovery-v1.8.0.zip   Ready to install
+plugin/                      WordPress plugin source (GPLv2+)
+  rootz-ai-discovery.php     Main plugin file
+  readme.txt                 WordPress.org readme
+  composer.json              PHP dependencies (elliptic crypto)
+  admin/                     Admin UI (8 tabs)
+  includes/                  Core classes (generator, signer, REST API, metrics)
+  public/                    Front-end assets (WebMCP tools)
+  languages/                 i18n translations
 ```
 
 ## IANA Registration
@@ -149,11 +158,11 @@ This specification proposes provisional registration of the well-known URI suffi
 ## License
 
 - **Specification** (`spec/`): [CC-BY-4.0](LICENSE) — open standard, free to implement
-- **WordPress Plugin** (`wordpress-plugin/`): GPLv2 or later
+- **WordPress Plugin** (`plugin/`): GPLv2 or later
 
 ## Links
 
-- **Specification**: [spec/standard.md](spec/standard.md)
+- **Specification**: [spec/standard-v1.2.md](spec/standard-v1.2.md)
 - **Live reference**: https://rootz.global/.well-known/ai
 - **Scanner**: https://discover.rootz.global/scanner/
 - **Rootz Corp**: https://rootz.global
