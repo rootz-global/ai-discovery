@@ -1,55 +1,246 @@
 # AI Context — Rootz AI Discovery Plugin
 
-> This file is for AI assistants helping a WordPress site owner configure the
-> Rootz AI Discovery plugin. Read this to understand the plugin, guide setup,
-> and record what you did.
+> This file is the internal reference manual for the Rootz AI Discovery WordPress
+> plugin. It documents features, architecture, deployment patterns, and how we do
+> things. Read this before working on the plugin.
 
 ## What This Plugin Does
 
 The Rootz AI Discovery plugin makes any WordPress site machine-readable for AI
-agents. It creates a structured JSON endpoint at `/.well-known/ai` (RFC 8615)
-that tells AI agents who you are, what your policies are, what content you have,
-and what tools are available — all cryptographically signed.
+agents. It creates structured endpoints that tell AI agents who you are, what
+your policies are, what content you have, and what tools are available — all
+cryptographically signed, all served in real time from the owner's WordPress database.
 
 **Without this plugin**: AI agents scrape raw HTML, guess who runs the site,
 don't know if they can quote your content, and hallucinate missing information.
 
 **With this plugin**: AI agents get clean structured data with verified identity,
-explicit permissions, and content integrity hashes in a single API call.
+explicit permissions, content integrity hashes, freshness metadata, and origin
+provenance — the website learns to speak AI.
 
 ## Plugin Version & Spec
 
-- Plugin: Rootz AI Discovery v2.1.1
-- Standard: AI Discovery Standard v1.2.0
-- License: GPLv2+ (plugin), CC-BY-4.0 (standard specification)
-- Requires: WordPress 6.0+, PHP 7.4+
-- Optional: PHP GMP extension (for cryptographic signing)
+- **Plugin**: Rootz AI Discovery v2.3.0
+- **Standard**: AI Discovery Standard v1.2.0
+- **License**: GPLv2+ (plugin), CC-BY-4.0 (standard specification)
+- **Requires**: WordPress 6.0+, PHP 7.4+
+- **Optional**: PHP GMP extension (for cryptographic signing)
 - **Lab site**: discover.rootz.global (Oracle server 141.148.25.214)
 - **Marketing site**: discover.rootz.global (WordPress, product pages + blog)
 - **Scanner/Spec site**: rootz.global (Express, scanner API + standard)
+- **Lab admin**: `rootzadmin` / `RzLab2026Admin`
+- **Lab wallet**: `0xD08914339B176C36C49D9827733599e1c4e5DAfF`
+
+## Core Architecture: Teaching the Web to Speak AI
+
+The plugin acts as a **translator** between WordPress's dynamic HTML pages and
+AI's need for structured, clean, permissioned content. Every WordPress page is
+dynamically generated from the database. Our plugin intercepts that and serves it as:
+
+- **Clean markdown** (not HTML soup)
+- **With metadata** (author, date, type, assertion type, word count)
+- **With permission signals** (license, quoting policy, training policy)
+- **With integrity proofs** (SHA-256 content hash, ECDSA signature)
+- **With freshness** (shelf life / TTL so AI knows when to come back)
+- **With origin provenance** (embedded stamps that survive scraping/caching)
+- **Under the operator's control** (they choose what's exposed)
+
+### The Three Modes
+
+| Mode | What | How |
+|------|------|-----|
+| **Broadcast** | Static snapshots (ai.json, llms.txt) | AI reads the brochure |
+| **Search** | Interactive queries (searchContent) | AI asks questions |
+| **Conversation** | On-demand page reads (getPage) | AI reads any page as markdown |
+
+### Freshness Metadata (`_freshness`)
+
+Every dynamic response includes shelf life so AI agents know when to re-fetch:
+
+| Content Age | TTL | Policy | Meaning |
+|-------------|-----|--------|---------|
+| < 1 day | 1 hour | `real-time` | Actively being edited |
+| 1-7 days | 1 day | `daily` | Recent content |
+| 7-30 days | 1 week | `weekly` | Settling down |
+| > 30 days | 30 days | `monthly` | Stable content |
+
+### Origin Provenance (`_origin` + `_provenance`)
+
+Every response embeds origin metadata that survives scraping, caching, and
+training. Even if this content ends up in a Wayback Machine archive or AI
+training set, the provenance travels with it:
+
+```json
+"_origin": {
+    "domain": "discover.rootz.global",
+    "publishedAt": "2026-02-21T23:04:25Z",
+    "modifiedAt": "2026-02-26T14:02:59Z",
+    "servedAt": "2026-03-04T20:21:47Z",
+    "signer": "0xD089..."
+},
+"_provenance": {
+    "origin": "discover.rootz.global",
+    "servedBy": "rootz-ai-discovery/2.3.0",
+    "signer": "0xD089...",
+    "specVersion": "1.2.0",
+    "standard": "https://rootz.global/ai-discovery"
+}
+```
+
+## Endpoints & Tools (9 total)
+
+### Static / Discovery Endpoints
+
+| Endpoint | URL | Purpose |
+|----------|-----|---------|
+| Discovery | `/.well-known/ai` | Main JSON manifest (identity, pages, signing) |
+| Policies | `/.well-known/ai/policies` | License, terms, quoting/training permissions |
+| Knowledge | `/.well-known/ai/knowledge` | About, products, glossary |
+| Feed | `/.well-known/ai/feed` | AI-optimized blog feed (last 20 posts) |
+| Content | `/.well-known/ai/content` | Structured content (pages/posts/media) |
+| Tools | `/.well-known/ai/tools` | Tool manifest (what AI agents can call) |
+| llms.txt | `/llms.txt` | Concise site overview for LLMs (signed) |
+| llms-full.txt | `/llms-full.txt` | Full content variant (signed, opt-in) |
+
+### Interactive REST API Tools
+
+| Tool | Endpoint | Parameters | Purpose |
+|------|----------|------------|---------|
+| **searchContent** | `GET /wp-json/rootz/v1/search` | `q` (required), `limit`, `offset`, `type` | Search site content with pagination |
+| **getPage** | `GET /wp-json/rootz/v1/page` | `path` (required) | Read any page as structured markdown with provenance |
+| **verifyPageHash** | `GET /wp-json/rootz/v1/verify` | `page` (required) | Verify content integrity against signed manifest |
+| **getStatus** | `GET /wp-json/rootz/v1/status` | none | Site AI readiness score (0-100, graded A-F) |
+| **getContext** | `GET /wp-json/rootz/v1/context` | none | AI assistant context (this info + live status) |
+
+### The AI Agent Flow
+
+1. **Discover**: Read `/.well-known/ai` or `/llms.txt` → learn who the site is
+2. **Search**: `searchContent?q=pricing` → find relevant pages
+3. **Read**: `getPage?path=/pricing/` → get full content as clean markdown
+4. **Verify**: `verifyPageHash?page=/pricing/` → confirm content integrity
+5. **Paginate**: `searchContent?q=AI&offset=10&limit=10` → get more results
+
+### searchContent Pagination
+
+The search tool now supports full pagination:
+
+```
+GET /wp-json/rootz/v1/search?q=AI&limit=10&offset=0
+
+Response:
+{
+    "query": "AI",
+    "results": [...],
+    "returned": 10,
+    "totalFound": 47,
+    "offset": 0,
+    "hasMore": true,
+    "nextOffset": 10,
+    "_provenance": {...}
+}
+```
+
+Use `nextOffset` to fetch the next page. Filter by `type=post` or `type=page`.
+
+### getPage Response Shape
+
+```
+GET /wp-json/rootz/v1/page?path=/about/
+
+Response:
+{
+    "path": "/about/",
+    "title": "About Us",
+    "url": "https://example.com/about/",
+    "type": "page",
+    "assertionType": "factual",
+    "author": "Admin",
+    "wordCount": 296,
+    "content": "## About Us\n\nWe build infrastructure for...",
+    "contentHash": "sha256:abc123...",
+    "policies": {
+        "license": "CC-BY-4.0",
+        "quoting": "allowed",
+        "training": "not-permitted",
+        "caching": "cache_24h"
+    },
+    "_origin": { "domain": "...", "publishedAt": "...", "modifiedAt": "...", "servedAt": "...", "signer": "..." },
+    "_freshness": { "maxAge": 86400, "freshUntil": "...", "refreshPolicy": "daily", "contentAge": "6.3 days" },
+    "_provenance": { "origin": "...", "servedBy": "rootz-ai-discovery/2.3.0", "signer": "...", ... },
+    "_signature": { "signer": "...", "contentHash": "...", "signature": "0x...", "method": "ecdsa-secp256k1" }
+}
+```
+
+## llms.txt Implementation
+
+The plugin generates spec-compliant llms.txt (llmstxt.org) with signed attestation.
+
+### Two Variants
+
+| File | URL | Default | Content |
+|------|-----|---------|---------|
+| **llms.txt** | `/llms.txt` | Enabled | Concise: title, description, page links, post links, policies, agent endpoints |
+| **llms-full.txt** | `/llms-full.txt` | Disabled | Full content: everything above + complete page/post text as markdown |
+
+### llms.txt Sections
+
+1. **Header**: H1 site name, blockquote summary, prose intro with sector
+2. **About**: About page link, AI Discovery endpoint link, contact
+3. **Key Pages**: Top 15 published pages with optional first-sentence excerpts
+4. **Recent Posts**: Recent blog posts (configurable limit, default 10)
+5. **Policies**: Discovered policy pages + license + quoting/training permissions
+6. **For AI Agents**: Tool endpoints (search, verify, status, knowledge, feed, content)
+7. **Optional**: Overflow pages beyond first 15
+
+### Signing
+
+Both variants are signed with the plugin wallet:
+```
+---
+Content signed by Rootz AI Discovery
+Content-Hash: sha256:abc123...
+Signer: 0xD089...
+Signed-At: 2026-03-04T20:21:47+00:00
+Signature: 0x45a63a80d7e83072...
+Standard: AI Discovery v1.2.0 — rootz.global/ai-discovery
+```
+
+### Admin Settings (Content tab)
+
+| Setting | Option Name | Default | Description |
+|---------|-------------|---------|-------------|
+| Enable llms.txt | `rootz_enable_llms_txt` | `1` | Generate /llms.txt |
+| Enable llms-full.txt | `rootz_enable_llms_full` | `0` | Generate /llms-full.txt (opt-in) |
+| Include excerpts | `rootz_llms_include_excerpts` | `1` | One-sentence excerpts after links |
+| Posts limit (llms.txt) | `rootz_llms_posts_limit` | `10` | Recent posts to list |
+| Posts limit (llms-full) | `rootz_llms_full_posts_limit` | `50` | Posts with full text |
+| Pages limit | `rootz_llms_pages_limit` | `30` | Pages to include |
+
+### Caching
+
+Both files are cached as WordPress transients for 1 hour:
+- `rootz_llms_txt_cache` — llms.txt content
+- `rootz_llms_full_cache` — llms-full.txt content
+
+Cleared by: saving Content settings, signing manifest, or calling
+`rootz_ai_discovery_clear_all_caches()`.
 
 ## Two-Level Identity Architecture
-
-The Rootz identity model has TWO distinct identities that work together:
 
 ### Owner Identity Contract (on-chain)
 The **Owner Identity** is a smart contract on Polygon created by IdentityFactory_V6. It represents the SITE OWNER (person or organization). The owner identity:
 - Manages authorized wallets ("rivets") — add/remove devices
 - Supports multi-device access (laptop, phone, plugin, Desktop V6)
-- Enables key rotation without losing ownership
 - Uses EIP-1271 for contract-based signature verification
 
 ### Plugin Wallet (local, in WordPress)
-The **Plugin Wallet** is a secp256k1 keypair generated inside the WordPress plugin on activation. It represents the PLUGIN INSTANCE on a specific site. The plugin wallet:
+The **Plugin Wallet** is a secp256k1 keypair generated inside the WordPress plugin on activation. It represents the PLUGIN INSTANCE on a specific site:
 - Stored AES-256-CBC encrypted in `wp_options`
 - Signs `_signature` blocks in all JSON endpoints
 - Requires PHP GMP extension for key generation/signing
 - Address always displayable via `Rootz_Signer::stored_address()`
-- **Lab site wallet**: `0xD08914339B176C36C49D9827733599e1c4e5DAfF`
 
 ### How They Relate: Authorization
-The Owner Identity Contract **authorizes** the Plugin Wallet by adding it as a "rivet" (authorized device). The plugin wallet can then act on behalf of the owner identity:
-
 ```
 Owner Identity Contract (Polygon)
     ├── Rivet 1: Owner's MetaMask wallet (human, can add/remove rivets)
@@ -57,8 +248,6 @@ Owner Identity Contract (Polygon)
     ├── Rivet 3: Desktop V6 wallet (optional)
     └── ...
 ```
-
-The owner can **revoke** the plugin wallet at any time (remove the rivet). The plugin wallet can never lock the owner out — the owner always retains control.
 
 ### Contract Addresses (Polygon Mainnet)
 | Contract | Address | Purpose |
@@ -71,54 +260,7 @@ The owner can **revoke** the plugin wallet at any time (remove the rivet). The p
 | Wallet | Address | Purpose |
 |--------|---------|---------|
 | Deployer/Funder | `0x86670C5C580BBCCf21EbA5eaaEbCc3087bb37A19` | Deploys contracts, funds gas (~71 POL) |
-| Primary Operator | `0x3f07D9DE...` | Funded by deployer, calls IdentityFactory |
 | Lab Plugin Wallet | `0xD08914339B176C36C49D9827733599e1c4e5DAfF` | discover.rootz.global plugin instance |
-
-### Current Licensing Flow (Phase 1 — SQLite Only)
-The Stripe webhook flow currently stores licensing data in SQLite on rootz.global. **No on-chain identity contracts are created by this flow yet.**
-
-1. User subscribes via Stripe checkout on rootz.global
-2. `deriveIdentityAddress()` hashes Stripe customer ID into a deterministic Ethereum address (NOT a real contract — just a placeholder address)
-3. Identity record saved to rootz.global SQLite with tier, max sites, expiration
-4. Plugin wallet calls `POST /api/license/register` with domain + wallet address
-5. rootz.global SQLite records the site registration under the derived identity
-
-**Code comment at `license-routes.mjs:33`**: *"When we deploy real Identity Contracts, this gets replaced with the contract address."*
-
-### Planned Phase 2 — Identity at Install
-The intended architecture creates a real on-chain Owner Identity Contract when the plugin is installed:
-
-1. Plugin activates → generates plugin wallet → calls `POST /api/identity/create` on rootz.global
-2. rootz.global server calls `IdentityFactory_V6.createIdentity()` on Polygon (Rootz pays gas)
-3. Rootz server wallet is initial controller (custodial — holds the key)
-4. Plugin wallet is added as a rivet on the identity contract
-5. When user pays via Stripe, their personal wallet gets added as a controller
-6. User can remove Rootz server key at any time (self-custody / "fire" Rootz)
-
-This means identity exists BEFORE payment — the plugin has a real on-chain identity from day one. Payment upgrades the tier, not the identity.
-
-### Infrastructure Already Built (in rootz-v6)
-The on-chain identity infrastructure is fully implemented in `rootz-v6/packages/identity-provider/`:
-- **IdentityManager** (`identity-manager.ts`): `createIdentity()`, `addRivet()`, `removeRivet()`, `getRivets()`
-- **KeyVault** (on-chain storage): `setKeyVault(key, value, isPublic)`, `getKeyVault()`, `hasKeyVault()`, `deleteKeyVault()`
-- **Multi-device encryption** (`multi-device-encryption.ts`): ECDH key sharing between rivets
-- **Device invite flow** (`device-invite-manager.ts`): 1-click authorization for new devices
-- **Design doc**: `docs/DESIGN-wallet-native-licensing.md` — full architecture for using KeyVault to store license data (tier, maxSites, expires) on-chain
-
-The license data model maps to KeyVault:
-- Key `"license"` → JSON with tier, maxSites, stripeCustomerId, expiresAt
-- Key `"sites"` → JSON array of registered plugin wallets with domains
-- `addRivet(pluginWallet)` → register a new site
-
-**What's NOT connected**: The rootz.global Express server (`license-routes.mjs`) doesn't call any of this yet — it only does SQLite with derived addresses. The bridge between Stripe webhook → IdentityFactory → KeyVault → addRivet is designed but not wired up.
-
-### Existing On-Chain Identity Contracts
-The ~16 identity contracts on IdentityFactory_V6 were created during **Desktop V6 testing** (by `0x3f07D9DE...` funded by the deployer). These are NOT from the plugin licensing flow.
-
-### Monitoring
-- **IdentityFactory transactions**: https://polygonscan.com/address/0xc6361e4780eb16ee8643538376600D97F9E4C9c0
-- **Deployer POL balance**: https://polygonscan.com/address/0x86670C5C580BBCCf21EbA5eaaEbCc3087bb37A19
-- **Gas costs**: Identity creation ~2.5M gas (~0.5-1 POL at current prices)
 
 ## AI Proxy Integration
 
@@ -127,149 +269,133 @@ epistery agent). The plugin wallet is the credential — no user API key needed.
 
 - **Proxy**: `https://dev.epistery.host/agent/rootz/ai-proxy/v1/generate`
 - **Source**: `ai-proxy/` directory (sibling to `rootz-wp-plugin/`)
-- **Context file**: `ai-proxy/ai.context.md`
-- **Types sent by plugin**: `summary`, `concepts`, `identity`
+- **Types sent**: `summary`, `concepts`, `identity`
 - **Fallback**: Direct Anthropic API if user provides own key
 
 **Coordination**: If you add a new generation type to `class-rootz-ai-generator.php`,
 you must also add the matching prompt template in `ai-proxy/anthropic.mjs` and
 add the type to the `validTypes` array in `ai-proxy/index.mjs`. Then deploy.
 
-## Setup Workflow
+## How We Do Things
 
-Follow these steps in order. Each step corresponds to a plugin tab.
+### Deployment to Lab Site
+
+```bash
+# SCP files to Oracle server (from Windows)
+/c/Windows/System32/OpenSSH/scp.exe -i C:/Users/StevenSprague/.ssh/rootz_server \
+    "path/to/file.php" \
+    ubuntu@141.148.25.214:/var/www/discover.rootz.global/wp-content/plugins/rootz-ai-discovery/path/to/file.php
+
+# Flush rewrite rules after adding new URL endpoints
+/c/Windows/System32/OpenSSH/ssh.exe -i C:/Users/StevenSprague/.ssh/rootz_server \
+    ubuntu@141.148.25.214 \
+    "cd /var/www/discover.rootz.global && wp rewrite flush"
+```
+
+**IMPORTANT**: Always use Windows native SSH (`/c/Windows/System32/OpenSSH/ssh.exe`),
+not Git Bash ssh which hangs.
+
+### Building the Plugin Zip
+
+```bash
+# Use Python zipfile — NOT PowerShell (backslash paths break WP Playground)
+python -c "
+import zipfile, os
+with zipfile.ZipFile('rootz-ai-discovery.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
+    for root, dirs, files in os.walk('rootz-ai-discovery'):
+        for f in files:
+            filepath = os.path.join(root, f)
+            arcname = filepath  # preserves rootz-ai-discovery/ prefix
+            zf.write(filepath, arcname)
+"
+```
+
+### Adding a New REST API Tool
+
+1. Register the route in `class-rootz-rest-api.php` → `register_routes()`
+2. Add the handler method in the same class
+3. Update `tool_count()` to match
+4. Add tool entry in `get_tools()` → appropriate category
+5. Add `_provenance` to the response using `$this->build_provenance()`
+6. Sign the response using `$this->sign_response( $data )`
+7. Test via curl: `curl -s "https://discover.rootz.global/wp-json/rootz/v1/your-tool"`
+8. Deploy via SCP to lab site
+
+### Adding a New Admin Setting
+
+1. Register in `class-rootz-admin.php` → `register_settings()` (correct settings group!)
+2. Add UI in the appropriate `admin/views/settings-*.php`
+3. Add a `Rootz_Admin::help_tip()` — every setting needs a help button explaining
+   what it does in plain language
+4. If it affects caching, add `delete_transient()` in the cache clear function
+5. Set default value in `rootz_ai_discovery_activate()` in the main plugin file
+
+### Vendor Libraries (Crypto)
+
+Located in `vendor/` — downloaded from GitHub, custom PSR-4 autoloader:
+- `simplito/elliptic-php` — secp256k1 curve operations
+- `simplito/bn-php` — big number arithmetic
+- `simplito/bigint-wrapper-php` — BigInteger wrapper
+- `kornrunner/keccak` — Keccak-256 hashing (Ethereum addresses)
+
+**Rule**: Never update these via Composer. We vendor them manually for WP
+compatibility. Check GitHub for security patches only.
+
+### HTML-to-Markdown Conversion
+
+`Rootz_Llms_Txt::html_to_markdown($html)` (public) wraps the private
+`strip_to_markdown()` method. Used by both llms.txt generation and the
+`getPage` tool. Handles: headings, links, bold/italic, images, blockquotes,
+lists, paragraphs, br tags. Always apply `html_entity_decode()` after calling.
+
+### Signing Pattern
+
+All JSON responses are signed via `sign_response($data)`:
+- If plugin wallet + GMP available → full ECDSA secp256k1 signature
+- If not → hash-only attestation (content integrity without crypto proof)
+- Signature covers the JSON-encoded data (without the `_signature` block itself)
+
+## Setup Workflow (for AI Assistants Helping Site Owners)
 
 ### Step 1: Identity (Tab: Identity)
-
-Fill in the organization's identity. These fields appear in `/.well-known/ai`:
+Fill in organization fields. Run auto-populate first, then review.
 
 | Field | Where to Find It | Required |
 |-------|-------------------|----------|
-| Organization Name | Site title (auto-populated) | Yes |
-| Tagline / Mission | Site description (auto-populated) | Yes |
-| Legal Name | Contact page, footer, legal docs | Recommended |
-| Sector | The organization's industry | Recommended |
-| Founded | Year the organization was established | Optional |
-| Headquarters | City/Country | Optional |
-| Contact Email | Admin email (auto-populated) | Yes |
-| Contact URL | Link to contact page | Recommended |
-| Operator | Name of the person managing the site | Recommended |
-| AI Support Email | Email for AI-related inquiries | Optional |
-| Privacy Email | Email for privacy/GDPR inquiries | Optional |
-
-**AI Summary**: Write 2-3 sentences explaining what this organization does and
-what information is available on this site. Write in third person, be factual.
-This is the first thing AI agents read.
-
-**Core Concepts**: List 5-15 domain-specific terms with definitions, one per
-line, in the format `term: definition`. These help AI agents understand your
-vocabulary.
-
-**Digital Identity** (advanced):
-- Digital Name: An Ethereum-compatible wallet address (0x...)
-- Blockchain: The network (e.g., "polygon")
-- Identity Contract: On-chain identity contract address
+| Organization Name | Site title | Yes |
+| Tagline / Mission | Site description | Yes |
+| Legal Name | Contact/about page | Recommended |
+| Sector | Industry description | Recommended |
+| AI Summary | 2-3 sentences, third person | Recommended |
+| Core Concepts | 5-15 terms with definitions | Recommended |
+| Contact Email | Admin email | Yes |
 
 ### Step 2: Content (Tab: Content)
-
-Configure which content types AI agents can access via `/.well-known/ai/content`:
-
-- **Pages**: Include published pages (recommended)
-- **Posts**: Include published blog posts (recommended)
-- **Custom post types**: Include WooCommerce products, portfolios, etc.
-- **Media**: Include images with EXIF metadata
-- **Full text**: Serve complete post content (vs. excerpts only)
-- **Post limit**: How many posts to include (default: 50)
-
-The content endpoint is **disabled by default**. Enable it only if you want AI
-agents to access your full content programmatically.
+Configure content endpoint and llms.txt. Every setting has a help tip (i) button.
 
 ### Step 3: Policies (Tab: Policies)
+Set AI content policies (license, quoting, training). Recommendation: allow
+quoting (free visibility), deny training (retain control).
 
-Set your AI content policies. These are machine-readable — AI agents will
-respect them:
+### Step 4: Tools (Tab: Tools & Preview)
+Enable/disable optional endpoints (knowledge, feed, content).
 
-| Setting | What It Means |
-|---------|---------------|
-| Content License | Default license for your content (CC-BY, CC0, All Rights Reserved) |
-| Allow Quoting | AI agents may quote and summarize your content |
-| Allow Training | AI agents may use your content for model training |
-
-**Recommendation**: Most sites should allow quoting (it's free visibility) but
-deny training (retain control over your content).
-
-### Step 4: Tools & Endpoints (Tab: Tools & Preview)
-
-Enable or disable optional endpoints:
-
-| Endpoint | URL | Purpose |
-|----------|-----|---------|
-| Discovery | `/.well-known/ai` | Always active. Main manifest. |
-| Knowledge | `/.well-known/ai/knowledge` | Encyclopedia about the organization |
-| Feed | `/.well-known/ai/feed` | AI-optimized blog feed |
-| Content | `/.well-known/ai/content` | Full content access (pages/posts/media) |
-
-**REST API Tools** (always available when plugin is active):
-- `GET /wp-json/rootz/v1/search?q={query}` — Search site content
-- `GET /wp-json/rootz/v1/verify?page=/path/` — Verify page content integrity
-- `GET /wp-json/rootz/v1/status` — Site readiness score (0-100)
-- `GET /wp-json/rootz/v1/tools` — List all available tools
-- `GET /wp-json/rootz/v1/ai.json` — AI manifest (REST mirror)
-- `GET /wp-json/rootz/v1/policies` — Machine-readable policies
-
-### Step 5: Account & Signing (Tab: Account & Wallet)
-
-**Plugin Wallet**: The plugin generates a secp256k1 keypair for cryptographic
-signing. The private key is stored AES-256-CBC encrypted in the WordPress
-database. Requires PHP GMP extension.
-
-- If GMP is available: Plugin auto-generates a key on activation
-- If GMP is missing: Plugin works in read-only mode (no signing)
-- The signing address appears in `_signature` blocks in every JSON response
-
-**Owner Wallet**: Optionally enter the site owner's wallet address (from
-MetaMask or similar). Future feature: the owner wallet can delegate authority
-to the plugin wallet via a signed message.
-
-**Auto-Populate**: Click this button to automatically fill identity fields from
-your existing WordPress content:
-- Organization Name ← site title
-- Tagline ← site description
-- AI Summary ← AI-generated from about page (or first 80 words fallback)
-- Core Concepts ← AI-generated from categories and content
-- Contact Email ← admin email
-- Contact URL ← contact page permalink
-- Legal Name ← extracted from about/contact page content
-- Sector ← extracted from about/contact page content
-- Founded ← extracted from about/contact page content
-- Headquarters ← extracted from about/contact page content
-
-Identity extraction works best when the site has a **contact page** or **about
-page** with structured company information (in an HTML table or labeled text like
-"Legal Name: Acme Corp").
+### Step 5: Account (Tab: Account & Wallet)
+Plugin wallet auto-generates on activation. Check GMP is available for signing.
 
 ### Step 6: Verify (Tab: What AI Sees)
+Preview what AI agents see. Sign the manifest.
 
-The "What AI Sees" tab shows a rendered preview of your `/.well-known/ai`
-endpoint. Check that:
+### Step 7: Check Score
+Visit `/wp-json/rootz/v1/status` — scored across 8 categories, 100 points total.
 
-1. Organization name and mission are correct
-2. Contact information is complete
-3. Policies match your intent
-4. Content hashes are present (one per published page)
-5. Signature block shows a valid signer address
-
-### Step 7: Check Your Score
-
-Visit: `{your-site}/wp-json/rootz/v1/status`
-
-The status endpoint scores your site across 8 categories (100 points total):
+## Scoring Breakdown
 
 | Category | Max | What Improves It |
 |----------|-----|------------------|
 | Identity | 15 | Fill all org fields, add AI summary, core concepts |
 | Policies | 15 | Set license, add policy pages (privacy, terms, data) |
-| Signing | 15 | Generate wallet, get owner delegation (future) |
+| Signing | 15 | Generate wallet, get owner delegation |
 | Content | 15 | Enable content endpoint, add pages/posts |
 | Endpoints | 15 | Enable knowledge + feed + content endpoints |
 | Contacts | 10 | Add all contact fields (email, URL, operator, AI, privacy) |
@@ -278,124 +404,43 @@ The status endpoint scores your site across 8 categories (100 points total):
 
 **Grades**: A (90+), B (80-89), C (70-79), D (60-69), F (<60)
 
-## Auto-Populate Tips
-
-The auto-populate feature extracts identity from your site's existing content.
-For best results, ensure your **about page** or **contact page** includes:
-
-- The organization's legal/registered name
-- Industry or sector
-- Year founded
-- Location/headquarters
-- Contact information
-
-These can appear as:
-- **HTML table rows**: `<tr><td>Legal Name</td><td>Acme Corp</td></tr>`
-- **Labeled text**: `Legal Name: Acme Corp`
-- **Definition lists**: `<dt>Founded</dt><dd>2020</dd>`
-
-If AI generation is available (via Rootz proxy or direct API key), the plugin
-uses Claude to intelligently extract these fields from natural language content.
-Otherwise, it falls back to pattern matching.
-
-## For AI Assistants: How to Help
-
-When helping a site owner configure this plugin:
-
-1. **Read their site first**: Visit `/.well-known/ai` to see current state
-2. **Check the score**: Visit `/wp-json/rootz/v1/status` for specific gaps
-3. **Look at their content**: Read the about page and contact page for identity info
-4. **Suggest improvements**: Use the score breakdown to prioritize
-5. **Don't over-fill**: Only populate fields you can verify from the site's own content
-6. **Verify after changes**: Re-check `/.well-known/ai` and the score endpoint
-
-### Common Tasks
-
-**"Set up AI Discovery from scratch"**
-→ Run auto-populate first, then review and correct each field manually.
-
-**"Improve my score"**
-→ Check `/wp-json/rootz/v1/status` and address the lowest-scoring categories.
-
-**"Verify my content integrity"**
-→ Use `/wp-json/rootz/v1/verify?page=/about/` to check any page's hash.
-
-**"What do AI agents see?"**
-→ Fetch `/.well-known/ai` and explain each section to the user.
-
-**"Add a new tool for AI agents"**
-→ Tools are registered in `class-rootz-rest-api.php` → `get_tools()`. Each tool
-  needs a REST route, a handler method, and an entry in the tools manifest.
-
-## Setup Log
-
-When you finish helping configure the plugin, record what was done. Use this
-format and store it in the WordPress options table as `rootz_setup_log`:
-
-```
-Setup completed by: [AI assistant name]
-Date: [YYYY-MM-DD]
-Plugin version: [version]
-Score before: [score]
-Score after: [score]
-
-Actions taken:
-- [action 1]
-- [action 2]
-- ...
-
-Fields populated:
-- [field]: [value] (source: [where you found it])
-
-Remaining recommendations:
-- [recommendation 1]
-- [recommendation 2]
-```
-
-To save the log via WP-CLI:
-```bash
-wp option update rootz_setup_log "$(cat setup-log.txt)"
-```
-
-Or programmatically:
-```php
-update_option( 'rootz_setup_log', $log_text );
-```
-
 ## File Reference
 
 ```
 rootz-ai-discovery/
-├── rootz-ai-discovery.php           # Main plugin file, hooks, routing
-├── ai.context.md                    # This file (AI assistant instructions)
+├── rootz-ai-discovery.php           # Main plugin file, hooks, routing, rewrite rules
+├── ai.context.md                    # This file (internal reference manual)
 ├── readme.txt                       # WordPress plugin readme
 ├── uninstall.php                    # Cleanup on uninstall
 ├── admin/
-│   ├── class-rootz-admin.php        # Admin page, tabs, auto-populate
-│   ├── assets/admin.css             # Admin styles
+│   ├── class-rootz-admin.php        # Admin page, tabs, settings, auto-populate, handlers
+│   ├── assets/
+│   │   ├── admin.css                # Admin styles (help tips, info boxes, tabs)
+│   │   └── admin-help.js            # Help tip toggle behavior
 │   └── views/
-│       ├── settings-viewer.php      # "What AI Sees" tab
-│       ├── settings-identity.php    # Identity tab
-│       ├── settings-content.php     # Content tab
-│       ├── settings-policies.php    # Policies tab
-│       ├── settings-tools.php       # Tools & Preview tab
-│       ├── settings-analytics.php   # Analytics tab
-│       └── settings-account.php     # Account & Wallet tab
+│       ├── settings-viewer.php      # "What AI Sees" tab (manifest preview)
+│       ├── settings-identity.php    # Identity tab (org fields, AI summary, concepts)
+│       ├── settings-content.php     # Content tab (content endpoint + llms.txt settings)
+│       ├── settings-policies.php    # Policies tab (license, quoting, training)
+│       ├── settings-tools.php       # Tools & Preview tab (endpoint toggles)
+│       ├── settings-analytics.php   # Analytics tab (AI access metrics)
+│       └── settings-account.php     # Account & Wallet tab (wallet, proxy, tiers)
 ├── includes/
-│   ├── class-rootz-ai-json.php      # /.well-known/ai generator
-│   ├── class-rootz-ai-generator.php # AI content generation (proxy + direct)
-│   ├── class-rootz-content-endpoint.php # Content endpoint (pages/posts/media)
-│   ├── class-rootz-llms-txt.php     # llms.txt generator
-│   ├── class-rootz-metrics.php      # AI access metrics & analytics
-│   ├── class-rootz-rest-api.php     # REST routes, knowledge, feed, tools
-│   ├── class-rootz-signer.php       # secp256k1 signing & key management
+│   ├── class-rootz-ai-json.php      # /.well-known/ai generator (identity, pages, hashes)
+│   ├── class-rootz-ai-generator.php # AI content generation (proxy + direct Anthropic)
+│   ├── class-rootz-content-endpoint.php # Content endpoint (pages/posts/media/custom)
+│   ├── class-rootz-license.php      # License checking + registration (rootz.global)
+│   ├── class-rootz-llms-txt.php     # llms.txt + llms-full.txt generator (signed)
+│   ├── class-rootz-metrics.php      # AI access metrics & agent classification
+│   ├── class-rootz-rest-api.php     # REST routes: search, getPage, verify, status, tools, etc.
+│   ├── class-rootz-signer.php       # secp256k1 signing & AES key management
 │   └── class-rootz-updater.php      # Self-hosted update checker (rootz.global)
 ├── public/
 │   └── webmcp-tools.js             # Browser WebMCP tool registration
-└── vendor/                          # Crypto libraries (elliptic-php, keccak, bn)
+└── vendor/                          # Crypto: elliptic-php, keccak, bn-php
 ```
 
-## Service Tiers (as of v2.1.1)
+## Service Tiers
 
 | Tier | Price | Features |
 |------|-------|----------|
@@ -405,35 +450,65 @@ rootz-ai-discovery/
 
 **Volume**: $4/$8 at 10+ sites, $3/$6 at 25+ sites.
 
-Account & Signing tab shows tiers with "View Plans" linking to `https://discover.rootz.global/pricing/`.
+## TODO / Known Issues
 
-## Recent Changes (v2.1.1 — Feb 27, 2026)
-- **WordPress Plugin Check compliance**: Passes all WP.org automated checks
-- **Output escaping**: All admin views use proper `esc_html()`, `esc_attr()`, `wp_kses()`
-- **Internationalization**: All user-facing strings wrapped in `__()` / `esc_html__()`
-- **Deferred scripts**: Admin JS uses `defer` for better page load
-- **Two-zip build**: rootz.global zip WITH updater (74 files), WP.org zip WITHOUT (73 files)
+### Open Bugs
+- **BUG-003**: Scanner URL validation error message on rootz.global
+- **BUG-004**: Add `upgrader_process_complete` hook to clear signed manifest cache on plugin update
 
-## Recent Changes (v2.1.0 — Feb 27, 2026)
-- **Spec v1.2 alignment**: Updated all references from v1.1 to v1.2
-- **Content endpoint**: Full content access with assertion types
+### Planned Features
+- **Owner delegation**: MetaMask authorization delegation to plugin wallet
+- **Per-page assertion types**: Allow operators to set factual/editorial/creative per page
+- **Rate limiting**: Enforce rate limits declared in policies
+- **Category/date filtering on searchContent**: `?category=security&after=2025-01-01`
+- **getPage caching**: Optional transient cache per-page for high-traffic sites
+- **Plugin v2.0 phases 2-5**: See `docs/DESIGN-plugin-v2-tools-auth-metrics.md`
 
-## Recent Changes (v2.0.5 — Feb 23, 2026)
-- **verify endpoint optimization**: No longer busts ai.json cache on every call — uses cached manifest
-- **Refactored status builder**: Extracted `build_status_data()` shared by `/status` and `/context` endpoints
+### Architecture Decisions (v2.3.0)
+- getPage returns content in real time (no cache) — freshness metadata handles staleness
+- Freshness is adaptive to content age, not a fixed TTL
+- Origin/provenance blocks travel with the content, not just in HTTP headers
+- `html_to_markdown()` is a public method on Rootz_Llms_Txt, reused by getPage
+- Pagination uses offset (not cursor) for simplicity — WordPress WP_Query native support
 
-## Recent Changes (v2.0.4 — Feb 23, 2026)
-- **Self-hosted update checker**: Updates now appear in Dashboard > Updates automatically
-- **Update manifest**: `rootz.global/api/plugin/update.json` with content hash signature
-- **Pricing tiers updated**: Free / Standard $5/mo / Pro $10/mo (was Free/Starter/Agency)
-- **View Plans link fixed**: Points to discover.rootz.global/pricing/
+## Recent Changes
 
-## Recent Changes (v2.0.0-2.0.2 — Feb 22, 2026)
-- **SEO meta tags**: Open Graph + Twitter Cards on all JSON endpoints
-- **AI Readiness Score preview**: Local score panel in "What AI Sees" tab
-- **Scanner v2.0 compatibility**: Updated to match 5-tier 120-point scoring
-- **Content hashes**: SHA-256 per page in ai.json pages[] array
-- **Signed endpoints**: All 5 JSON endpoints signed (not just ai.json)
+### v2.3.0 (Mar 4, 2026)
+- **`getPage` tool**: Read any published page/post as structured markdown with
+  origin provenance, content hash, freshness metadata, policy permissions, and
+  ECDSA signature. The "conversation mode" tool.
+- **Freshness metadata (`_freshness`)**: Adaptive shelf life on content responses.
+  Tells AI when to re-fetch. Recently edited = 1 hour, stable = 30 days.
+- **Origin provenance (`_origin` + `_provenance`)**: Embedded in every dynamic
+  response. Stamps domain, publishedAt, modifiedAt, servedAt, signer. Survives
+  scraping and caching.
+- **searchContent pagination**: `offset` parameter, `totalFound`, `hasMore`,
+  `nextOffset` in response. Limit raised to 50 (was 20).
+- **searchContent type filter**: `?type=post` or `?type=page`
+- **llms.txt signed generation**: Spec-compliant llms.txt and llms-full.txt with
+  ECDSA signature footer. Enabled by default (llms.txt) / opt-in (llms-full.txt).
+- **llms.txt admin settings**: Full Content tab section with help tips on every
+  setting. Enable/disable, excerpts toggle, configurable limits.
+- **Help tips everywhere**: Every Content tab setting now has an (i) button
+  explaining what it does in plain language for operators.
+- **Tool count**: 8 → 9 (added getPage)
+
+### v2.2.1 (Feb 27, 2026)
+- WordPress Plugin Check compliance, output escaping, i18n, deferred scripts
+
+### v2.1.0 (Feb 27, 2026)
+- Spec v1.2 alignment, content endpoint with assertion types
+
+### v2.0.5 (Feb 23, 2026)
+- verify endpoint optimization, refactored status builder
+
+### v2.0.0-2.0.4 (Feb 22-23, 2026)
+- SEO meta tags, AI Readiness Score, content hashes, signed endpoints,
+  self-hosted update checker, pricing tiers
+
+### v1.8.0 (Feb 22, 2026)
+- AI access metrics, searchContent tool, verifyPageHash tool, self-scoring
+  status endpoint (8 categories, 100-point scale, A-F grades), tools manifest
 
 ## Links
 
@@ -443,3 +518,4 @@ Account & Signing tab shows tiers with "View Plans" linking to `https://discover
 - Lab site: https://discover.rootz.global
 - GitHub: https://github.com/rootz-global
 - Support: ai@rootz.global
+- Design docs: `docs/DESIGN-plugin-v2-tools-auth-metrics.md`, `docs/SPEC-llms-txt-upgrade.md`

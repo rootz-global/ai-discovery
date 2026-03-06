@@ -65,13 +65,14 @@ class Rootz_Admin {
             'rootz_enable_content', 'rootz_content_include_pages', 'rootz_content_include_posts',
             'rootz_content_include_custom_types', 'rootz_content_include_media',
             'rootz_content_include_full_text',
+            'rootz_enable_llms_txt', 'rootz_enable_llms_full', 'rootz_llms_include_excerpts',
         );
         foreach ( $content_checkboxes as $field ) {
             register_setting( 'rootz_content', $field, array(
                 'type' => 'string', 'sanitize_callback' => array( $this, 'sanitize_checkbox' ),
             ) );
         }
-        foreach ( array( 'rootz_content_posts_limit', 'rootz_content_media_limit' ) as $field ) {
+        foreach ( array( 'rootz_content_posts_limit', 'rootz_content_media_limit', 'rootz_llms_posts_limit', 'rootz_llms_full_posts_limit', 'rootz_llms_pages_limit' ) as $field ) {
             register_setting( 'rootz_content', $field, array(
                 'type' => 'integer', 'sanitize_callback' => 'absint',
             ) );
@@ -342,6 +343,7 @@ class Rootz_Admin {
         delete_transient( 'rootz_feed_cache' );
         delete_transient( 'rootz_content_cache' );
         delete_transient( 'rootz_llms_txt_cache' );
+        delete_transient( 'rootz_llms_full_cache' );
 
         // Sign the manifest — this is the admin-approved action.
         rootz_ai_discovery_sign_manifest();

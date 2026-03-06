@@ -103,7 +103,7 @@ The `/.well-known/ai` document can declare tools that AI agents can invoke:
 }
 ```
 
-Tools include `verifyPageHash` (prove content integrity in one API call), `searchContent` (structured content search), `getStatus` (self-scoring readiness assessment), and more. Tools are categorized and permissioned — anonymous, authenticated, or authorized.
+Tools include `getPage` (read any page as structured markdown with provenance), `verifyPageHash` (prove content integrity in one API call), `searchContent` (full-text search with pagination), `getStatus` (self-scoring readiness assessment), and more. Tools are categorized and permissioned — anonymous, authenticated, or authorized.
 
 ## Live Implementations
 
@@ -118,15 +118,18 @@ Test any site: **https://discover.rootz.global/scanner/**
 
 ## WordPress Plugin
 
-The `plugin/` directory contains the full source for the **Rootz AI Discovery** WordPress plugin (v2.2.1). It automatically generates `/.well-known/ai` from existing WordPress content — no manual JSON editing required.
+The `plugin/` directory contains the full source for the **Rootz AI Discovery** WordPress plugin (v2.3.0). It automatically generates `/.well-known/ai` from existing WordPress content — no manual JSON editing required.
 
 - **Plugin Wallet** — Generates a secp256k1 keypair stored AES-256-CBC encrypted. Signs all endpoints automatically.
 - **Per-Page Content Hashes** — SHA-256 hash of every page included in the manifest
 - **8 Admin Tabs** — Identity, Content, Policies, Tools, Analytics, What AI Sees, Account & Signing, Quick Start
-- **Adoption Registry** — Track and display sites implementing the AI Discovery Standard
+- **Conversation Mode** — AI agents read any page on-demand via `getPage` tool with structured markdown output
+- **Adaptive Freshness** — `_freshness` metadata with TTL based on content age (1h for new, 30d for stable)
+- **Origin Provenance** — `_origin` and `_provenance` blocks embedded in every response, survives scraping/caching
+- **9 AI Tools** — Including `getPage`, `searchContent` (with pagination), `verifyPageHash` (content integrity)
 - **AI Access Metrics** — Tracks which AI agents visit, classifies by type, reports in Analytics tab
-- **7 AI Tools** — Including `verifyPageHash` for content integrity verification
 - **Self-Scoring Status** — 100-point scale across 8 categories with A-F letter grades
+- **Signed llms.txt** — Generated with ECDSA signature and content hash
 - **WebMCP Support** — Browser-native tool registration for Chrome 146+
 - **Content Endpoint** — Structured pages, posts, media with assertion types (factual, editorial, creative-work)
 - **Auto-Updates** — Self-hosted update check; skips when installed from WordPress.org

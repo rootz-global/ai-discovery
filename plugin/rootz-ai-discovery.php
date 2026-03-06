@@ -3,7 +3,7 @@
  * Plugin Name:       Rootz AI Discovery
  * Plugin URI:        https://rootz.global/ai-discovery
  * Description:       Make your WordPress site AI-agent-ready. Serves /.well-known/ai with structured identity, policies, content, and WebMCP tools so AI agents can discover, understand, and interact with your site properly.
- * Version:           2.2.1
+ * Version:           2.3.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Rootz Corp
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'ROOTZ_AI_DISCOVERY_VERSION', '2.2.1' );
+define( 'ROOTZ_AI_DISCOVERY_VERSION', '2.3.0' );
 define( 'ROOTZ_AI_DISCOVERY_SPEC', '1.2.0' );
 define( 'ROOTZ_AI_DISCOVERY_FILE', __FILE__ );
 define( 'ROOTZ_AI_DISCOVERY_DIR', plugin_dir_path( __FILE__ ) );
@@ -73,6 +73,12 @@ function rootz_ai_discovery_activate() {
         'rootz_plugin_wallet'                => '',
         'rootz_owner_identity'               => '',
         'rootz_enable_seo_tags'              => '1',
+        'rootz_enable_llms_txt'              => '1',
+        'rootz_enable_llms_full'             => '0',
+        'rootz_llms_posts_limit'             => '10',
+        'rootz_llms_full_posts_limit'        => '50',
+        'rootz_llms_pages_limit'             => '30',
+        'rootz_llms_include_excerpts'        => '1',
     );
 
     foreach ( $defaults as $key => $value ) {
@@ -124,8 +130,9 @@ function rootz_ai_discovery_register_rewrites() {
     add_rewrite_rule( '\.well-known/ai/content/media/?$', 'index.php?rootz_endpoint=content_media', 'top' );
     add_rewrite_rule( '\.well-known/ai/content/([^/]+)/?$', 'index.php?rootz_endpoint=content_custom&rootz_content_type=$matches[1]', 'top' );
 
-    // llms.txt
+    // llms.txt and llms-full.txt
     add_rewrite_rule( 'llms\.txt$', 'index.php?rootz_endpoint=llms_txt', 'top' );
+    add_rewrite_rule( 'llms-full\.txt$', 'index.php?rootz_endpoint=llms_full_txt', 'top' );
 
     // Prevent WordPress from redirecting .well-known/ai URLs.
     add_filter( 'redirect_canonical', 'rootz_ai_discovery_prevent_redirect', 10, 2 );
@@ -151,6 +158,20 @@ function rootz_ai_discovery_query_vars( $vars ) {
     return $vars;
 }
 add_filter( 'query_vars', 'rootz_ai_discovery_query_vars' );
+
+/**
+ * Serve plain text with standard headers.
+ */
+function rootz_ai_discovery_serve_text( $content, $cache_seconds = 3600 ) {
+    header( 'Content-Type: text/plain; charset=utf-8' );
+    header( 'X-Robots-Tag: noindex' );
+    header( 'Access-Control-Allow-Origin: *' );
+    header( 'Cache-Control: public, max-age=' . intval( $cache_seconds ) );
+    header( 'X-Rootz-AI-Discovery: ' . ROOTZ_AI_DISCOVERY_VERSION );
+    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Plain text output, not HTML context.
+    echo $content;
+    exit;
+}
 
 /**
  * Serve JSON with standard headers.
@@ -255,12 +276,21 @@ function rootz_ai_discovery_template_redirect() {
             break;
 
         case 'llms_txt':
+            if ( '1' !== get_option( 'rootz_enable_llms_txt', '1' ) ) {
+                status_header( 404 );
+                exit;
+            }
             $generator = new Rootz_Llms_Txt();
-            header( 'Content-Type: text/plain; charset=utf-8' );
-            header( 'Cache-Control: public, max-age=3600' );
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Plain text output, not HTML context.
-            echo $generator->generate();
-            exit;
+            rootz_ai_discovery_serve_text( $generator->generate() );
+            break;
+
+        case 'llms_full_txt':
+            if ( '1' !== get_option( 'rootz_enable_llms_full', '0' ) ) {
+                status_header( 404 );
+                exit;
+            }
+            $generator = new Rootz_Llms_Txt();
+            rootz_ai_discovery_serve_text( $generator->generate_full() );
             break;
     }
 }
@@ -273,6 +303,14 @@ function rootz_ai_discovery_wp_head() {
     // AI Discovery link tag (always).
     $url = home_url( '/.well-known/ai' );
     echo '<link rel="ai-discovery" type="application/json" href="' . esc_url( $url ) . '" title="AI Discovery Standard">' . "\n";
+
+    // llms.txt link tags.
+    if ( '1' === get_option( 'rootz_enable_llms_txt', '1' ) ) {
+        echo '<link rel="llms-txt" href="' . esc_url( home_url( '/llms.txt' ) ) . '" />' . "\n";
+    }
+    if ( '1' === get_option( 'rootz_enable_llms_full', '0' ) ) {
+        echo '<link rel="llms-txt-full" href="' . esc_url( home_url( '/llms-full.txt' ) ) . '" />' . "\n";
+    }
 
     // SEO tags: meta description, OpenGraph, JSON-LD.
     // Only output if enabled AND no known SEO plugin is active.
@@ -454,6 +492,7 @@ function rootz_ai_discovery_clear_all_caches() {
     delete_transient( 'rootz_feed_cache' );
     delete_transient( 'rootz_content_cache' );
     delete_transient( 'rootz_llms_txt_cache' );
+    delete_transient( 'rootz_llms_full_cache' );
 
     // Flag that content has changed and the manifest needs re-signing.
     update_option( 'rootz_manifest_needs_signing', '1', false );

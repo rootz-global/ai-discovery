@@ -76,6 +76,18 @@ class Rootz_Rest_Api {
                     'default'           => 10,
                     'sanitize_callback' => 'absint',
                 ),
+                'offset' => array(
+                    'type'              => 'integer',
+                    'default'           => 0,
+                    'sanitize_callback' => 'absint',
+                    'description'       => 'Skip this many results (for pagination). Use with limit.',
+                ),
+                'type' => array(
+                    'type'              => 'string',
+                    'default'           => '',
+                    'sanitize_callback' => 'sanitize_text_field',
+                    'description'       => 'Filter by post type: post, page, or empty for all.',
+                ),
             ),
         ) );
 
@@ -105,6 +117,21 @@ class Rootz_Rest_Api {
             'methods'             => 'GET',
             'callback'            => array( $this, 'get_context' ),
             'permission_callback' => '__return_true',
+        ) );
+
+        // GET /rootz/v1/page — Read any published page/post as structured markdown.
+        register_rest_route( $namespace, '/page', array(
+            'methods'             => 'GET',
+            'callback'            => array( $this, 'get_page_content' ),
+            'permission_callback' => '__return_true',
+            'args'                => array(
+                'path' => array(
+                    'required'          => true,
+                    'type'              => 'string',
+                    'sanitize_callback' => 'sanitize_text_field',
+                    'description'       => 'Page URL path (e.g., /about/, /blog/my-post/)',
+                ),
+            ),
         ) );
     }
 
@@ -185,9 +212,9 @@ class Rootz_Rest_Api {
      */
     public static function tool_count() {
         // discovery: getOrganizationInfo, getPolicies, getKnowledge, getFeed
-        // actions:   searchContent, verifyPageHash
+        // actions:   searchContent, verifyPageHash, getPage
         // meta:      getStatus, getContext
-        return 8;
+        return 9;
     }
 
     public static function discover_policy_pages() {
@@ -488,17 +515,29 @@ class Rootz_Rest_Api {
                     ),
                 ),
                 'actions' => array(
-                    'description' => 'Interactive tools for searching, verifying, and engaging with site content.',
+                    'description' => 'Interactive tools for searching, reading, and verifying site content in real time from the owner\'s database.',
                     'tools'       => array(
                         array(
                             'name'        => 'searchContent',
-                            'description' => 'Search site content by keyword. Returns matching pages and posts with excerpts.',
+                            'description' => 'Search site content by keyword. Returns matching pages and posts with excerpts. Supports pagination — use offset to get more results.',
                             'method'      => 'GET',
                             'endpoint'    => rest_url( 'rootz/v1/search' ),
                             'auth'        => 'none',
                             'parameters'  => array(
-                                'q'     => array( 'type' => 'string', 'required' => true, 'description' => 'Search query' ),
-                                'limit' => array( 'type' => 'integer', 'default' => 10, 'description' => 'Max results' ),
+                                'q'      => array( 'type' => 'string', 'required' => true, 'description' => 'Search query' ),
+                                'limit'  => array( 'type' => 'integer', 'default' => 10, 'description' => 'Max results (up to 50)' ),
+                                'offset' => array( 'type' => 'integer', 'default' => 0, 'description' => 'Skip results for pagination. Use nextOffset from response.' ),
+                                'type'   => array( 'type' => 'string', 'default' => '', 'description' => 'Filter: post, page, or empty for all' ),
+                            ),
+                        ),
+                        array(
+                            'name'        => 'getPage',
+                            'description' => 'Read any published page or post as structured markdown with origin provenance, content hash, freshness metadata, and policy permissions. Use searchContent to find pages, then getPage to read them.',
+                            'method'      => 'GET',
+                            'endpoint'    => rest_url( 'rootz/v1/page' ),
+                            'auth'        => 'none',
+                            'parameters'  => array(
+                                'path' => array( 'type' => 'string', 'required' => true, 'description' => 'Page URL path (e.g., /about/, /blog/my-post/)' ),
                             ),
                         ),
                         array(
@@ -550,14 +589,22 @@ class Rootz_Rest_Api {
      * @return WP_REST_Response
      */
     public function search_content( $request ) {
-        $query = $request->get_param( 'q' );
-        $limit = min( $request->get_param( 'limit' ), 20 );
+        $query  = $request->get_param( 'q' );
+        $limit  = min( $request->get_param( 'limit' ), 50 );
+        $offset = $request->get_param( 'offset' );
+        $type   = $request->get_param( 'type' );
+
+        $post_types = array( 'post', 'page' );
+        if ( ! empty( $type ) && in_array( $type, array( 'post', 'page' ), true ) ) {
+            $post_types = array( $type );
+        }
 
         $wp_query = new WP_Query( array(
             's'              => $query,
-            'post_type'      => array( 'post', 'page' ),
+            'post_type'      => $post_types,
             'post_status'    => 'publish',
             'posts_per_page' => $limit,
+            'offset'         => $offset,
             'orderby'        => 'relevance',
         ) );
 
@@ -565,20 +612,32 @@ class Rootz_Rest_Api {
         foreach ( $wp_query->posts as $post ) {
             $plain   = wp_strip_all_tags( $post->post_content );
             $results[] = array(
-                'title'    => $post->post_title,
-                'url'      => get_permalink( $post ),
-                'path'     => wp_parse_url( get_permalink( $post ), PHP_URL_PATH ) ?: '/',
-                'type'     => $post->post_type,
-                'excerpt'  => wp_trim_words( $plain, 40 ),
-                'modified' => get_post_modified_time( 'c', true, $post ),
+                'title'     => $post->post_title,
+                'url'       => get_permalink( $post ),
+                'path'      => wp_parse_url( get_permalink( $post ), PHP_URL_PATH ) ?: '/',
+                'type'      => $post->post_type,
+                'excerpt'   => wp_trim_words( $plain, 40 ),
+                'published' => get_the_date( 'c', $post ),
+                'modified'  => get_post_modified_time( 'c', true, $post ),
             );
         }
 
+        $found_total = $wp_query->found_posts;
+        $has_more    = ( $offset + $limit ) < $found_total;
+
         $data = array(
-            'query'   => $query,
-            'results' => $results,
-            'total'   => count( $results ),
+            'query'      => $query,
+            'results'    => $results,
+            'returned'   => count( $results ),
+            'totalFound' => $found_total,
+            'offset'     => $offset,
+            'hasMore'    => $has_more,
+            '_provenance' => $this->build_provenance(),
         );
+
+        if ( $has_more ) {
+            $data['nextOffset'] = $offset + $limit;
+        }
 
         $data     = $this->sign_response( $data );
         $response = rest_ensure_response( $data );
@@ -981,6 +1040,190 @@ class Rootz_Rest_Api {
             'all-rights-reserved' => 'All Rights Reserved',
         );
         return isset( $map[ $key ] ) ? $map[ $key ] : $key;
+    }
+
+    /**
+     * GET /rootz/v1/page — Read any published page/post as structured markdown.
+     *
+     * This is the "conversation mode" tool — AI discovers a page via search or
+     * manifest, then requests its full content as clean markdown with provenance
+     * and freshness metadata.
+     *
+     * @param WP_REST_Request $request
+     * @return WP_REST_Response
+     */
+    public function get_page_content( $request ) {
+        $page_path = $request->get_param( 'path' );
+
+        // Normalize: ensure leading slash.
+        $page_path = '/' . ltrim( $page_path, '/' );
+
+        // Resolve the page from WordPress.
+        $page_id = $this->resolve_page_id( $page_path );
+
+        if ( ! $page_id ) {
+            $data = array(
+                'path'   => $page_path,
+                'error'  => 'Page not found. Try searchContent to find available pages.',
+                '_provenance' => $this->build_provenance(),
+            );
+            $data     = $this->sign_response( $data );
+            $response = rest_ensure_response( $data );
+            $response->set_status( 404 );
+            $response->header( 'Access-Control-Allow-Origin', '*' );
+            return $response;
+        }
+
+        $post = get_post( $page_id );
+
+        if ( ! $post || 'publish' !== $post->post_status ) {
+            $data = array(
+                'path'   => $page_path,
+                'error'  => 'Page is not published.',
+                '_provenance' => $this->build_provenance(),
+            );
+            $data     = $this->sign_response( $data );
+            $response = rest_ensure_response( $data );
+            $response->set_status( 404 );
+            $response->header( 'Access-Control-Allow-Origin', '*' );
+            return $response;
+        }
+
+        // Convert HTML to clean markdown using the llms.txt converter.
+        $llms = new Rootz_Llms_Txt();
+        $markdown = $llms->html_to_markdown( $post->post_content );
+        $markdown = html_entity_decode( $markdown, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+
+        // Compute content hash from the plain text (same method as verify).
+        $plain = wp_strip_all_tags( $post->post_content );
+        $plain = preg_replace( '/\s+/', ' ', trim( $plain ) );
+        $content_hash = 'sha256:' . hash( 'sha256', $plain );
+
+        // Determine assertion type.
+        $assertion_type = 'factual';
+        if ( 'post' === $post->post_type ) {
+            $assertion_type = 'editorial';
+        }
+
+        // Word count for AI context window planning.
+        $word_count = str_word_count( $plain );
+
+        // Get policies for this content.
+        $license  = get_option( 'rootz_content_license', 'all-rights-reserved' );
+        $quoting  = '1' === get_option( 'rootz_allow_quoting', '1' );
+        $training = '1' === get_option( 'rootz_allow_training', '0' );
+
+        // Categories and tags (for posts).
+        $categories = array();
+        $tags       = array();
+        if ( 'post' === $post->post_type ) {
+            $cats = wp_get_post_categories( $post->ID, array( 'fields' => 'names' ) );
+            if ( ! empty( $cats ) ) {
+                $categories = $cats;
+            }
+            $tag_list = wp_get_post_tags( $post->ID, array( 'fields' => 'names' ) );
+            if ( ! empty( $tag_list ) ) {
+                $tags = $tag_list;
+            }
+        }
+
+        // Author info.
+        $author_name = get_the_author_meta( 'display_name', $post->post_author );
+
+        $data = array(
+            'path'          => $page_path,
+            'title'         => $post->post_title,
+            'url'           => get_permalink( $post ),
+            'type'          => $post->post_type,
+            'assertionType' => $assertion_type,
+            'author'        => $author_name,
+            'wordCount'     => $word_count,
+            'content'       => $markdown,
+            'contentHash'   => $content_hash,
+            'policies'      => array(
+                'license'   => $this->format_license( $license ),
+                'quoting'   => $quoting ? 'allowed' : 'not-allowed',
+                'training'  => $training ? 'permitted' : 'not-permitted',
+                'caching'   => $quoting ? 'cache_24h' : 'no-cache',
+            ),
+            '_origin'       => array(
+                'domain'      => wp_parse_url( home_url(), PHP_URL_HOST ),
+                'publishedAt' => get_the_date( 'c', $post ),
+                'modifiedAt'  => get_post_modified_time( 'c', true, $post ),
+                'servedAt'    => gmdate( 'c' ),
+                'signer'      => Rootz_Signer::stored_address() ?: 'none',
+            ),
+            '_freshness'    => $this->build_freshness( $post ),
+            '_provenance'   => $this->build_provenance(),
+        );
+
+        if ( ! empty( $categories ) ) {
+            $data['categories'] = $categories;
+        }
+        if ( ! empty( $tags ) ) {
+            $data['tags'] = $tags;
+        }
+
+        $data     = $this->sign_response( $data );
+        $response = rest_ensure_response( $data );
+        $response->header( 'Access-Control-Allow-Origin', '*' );
+        return $response;
+    }
+
+    /**
+     * Build freshness metadata for a post.
+     *
+     * Tells AI agents when this content expires and should be re-fetched.
+     * Creates an incentive to return for fresh content rather than caching forever.
+     *
+     * @param WP_Post $post The post to build freshness for.
+     * @return array Freshness metadata.
+     */
+    private function build_freshness( $post ) {
+        $modified = strtotime( $post->post_modified_gmt );
+        $age_days = ( time() - $modified ) / DAY_IN_SECONDS;
+
+        // Adaptive freshness: recently modified content expires sooner.
+        if ( $age_days < 1 ) {
+            $max_age = 3600;         // 1 hour — actively being edited.
+            $policy  = 'real-time';
+        } elseif ( $age_days < 7 ) {
+            $max_age = 86400;        // 1 day — recent content.
+            $policy  = 'daily';
+        } elseif ( $age_days < 30 ) {
+            $max_age = 604800;       // 1 week — settling down.
+            $policy  = 'weekly';
+        } else {
+            $max_age = 2592000;      // 30 days — stable content.
+            $policy  = 'monthly';
+        }
+
+        return array(
+            'maxAge'       => $max_age,
+            'freshUntil'   => gmdate( 'c', time() + $max_age ),
+            'refreshPolicy' => $policy,
+            'lastModified' => get_post_modified_time( 'c', true, $post ),
+            'contentAge'   => round( $age_days, 1 ) . ' days',
+        );
+    }
+
+    /**
+     * Build provenance metadata block.
+     *
+     * This block travels with every response so that even if the content
+     * is scraped, cached, or trained on, the origin is embedded.
+     *
+     * @return array Provenance metadata.
+     */
+    private function build_provenance() {
+        return array(
+            'origin'        => wp_parse_url( home_url(), PHP_URL_HOST ),
+            'servedAt'      => gmdate( 'c' ),
+            'servedBy'      => 'rootz-ai-discovery/' . ROOTZ_AI_DISCOVERY_VERSION,
+            'signer'        => Rootz_Signer::stored_address() ?: 'none',
+            'specVersion'   => ROOTZ_AI_DISCOVERY_SPEC,
+            'standard'      => 'https://rootz.global/ai-discovery',
+        );
     }
 
     /**
