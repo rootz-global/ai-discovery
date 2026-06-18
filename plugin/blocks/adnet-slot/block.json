@@ -1,0 +1,28 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "rootz-ai-discovery/adnet-slot",
+	"version": "1.0.0",
+	"title": "Adnet Ad Slot",
+	"category": "widgets",
+	"icon": "megaphone",
+	"description": "Place a verified Adnet advertisement on this page. Earnings go directly to your configured publisher wallet via smart contract.",
+	"keywords": [ "ad", "adnet", "advertising", "rootz", "verified" ],
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	},
+	"attributes": {
+		"campaignId": {
+			"type": "string",
+			"default": ""
+		},
+		"placeholderText": {
+			"type": "string",
+			"default": "Advertisement"
+		}
+	},
+	"textdomain": "rootz-ai-discovery",
+	"editorScript": "file:./edit.js",
+	"render": "file:./render.php"
+}

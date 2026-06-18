@@ -4,7 +4,7 @@ Tags: ai, seo, discovery, structured-data, ai-agent
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.2.1
+Stable tag: 2.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,20 +27,38 @@ When an AI agent visits your WordPress site today, it has to scrape HTML, guess 
 * Registers WebMCP tools for browser-based AI assistants
 * Machine-readable content licensing (CC-BY, CC0, All Rights Reserved, etc.)
 * AI training opt-in/opt-out declaration
-* Digital identity support (blockchain wallet address and signing)
+* **Cryptographic signing** — every ai.json response and llms.txt is digitally signed (ECDSA secp256k1), proving origin and content integrity
+* Digital identity via plugin wallet (Ethereum-compatible address generated locally)
 * Content assertion types (factual, editorial, creative-work) per item
 * AI access metrics and analytics dashboard
 * Self-scoring status endpoint for monitoring
 
+**Signed for origin and quality.** Each plugin install generates a unique cryptographic identity. Every manifest is digitally signed so AI agents can verify the data came from your site and hasn't been tampered with. No other WordPress plugin does this. For more information on managing your digital identity, see [rootz.global/identity](https://rootz.global/identity).
+
 **Core data is generated locally** from your existing WordPress content. Optional AI-powered features use external services (see Third-Party Services below).
 
-**Open standard.** The AI Discovery Standard v1.2 is CC-BY-4.0 licensed. See [rootz.global/ai-discovery](https://rootz.global/ai-discovery).
+**Open standard.** The AI Discovery Standard is CC-BY-4.0 licensed. See [rootz.global/ai-discovery](https://rootz.global/ai-discovery).
 
 = Third-Party Services =
 
 This plugin connects to external services in the following cases. All connections use HTTPS.
 
-**1. Rootz AI Proxy (optional)**
+**1. Adnet Verified Advertising (optional — disabled by default)**
+When you enable Adnet in Settings → AI Discovery → Adnet and configure a publisher wallet, the plugin connects to the GeistM Adnet network to serve verified advertisements:
+* Service: `adnet.geistm.com`
+* Data sent: Publisher wallet address (public blockchain address), anonymized event counts, cryptographic batch hashes. No name, email, or IP address is transmitted.
+* Browser data: A cryptographic key pair unique to this browser+domain is generated locally and stored in IndexedDB. The private key never leaves the visitor's device. This key cannot be used to track visitors across other sites.
+* When: Only when Adnet is enabled AND a publisher wallet address is configured
+* Terms: https://geistm.com/terms
+* Privacy: https://geistm.com/privacy
+
+**2. Polygon Blockchain RPC (optional — when Adnet is enabled)**
+When Adnet is enabled, the plugin verifies campaign contract status via a public Polygon RPC node:
+* Service: `polygon-bor-rpc.publicnode.com`
+* Data sent: Campaign contract address (public on-chain data only). No user data.
+* When: Same condition as Adnet above
+
+**3. Rootz AI Proxy (optional)**
 When you use the "Auto-Populate with AI" feature to generate your site description, summary, or core concepts, the plugin sends your site URL and basic metadata to:
 * Service: `dev.epistery.host/agent/rootz/ai-proxy/`
 * Data sent: Site URL, title, tagline
@@ -52,7 +70,7 @@ If you enter your own Anthropic API key in settings, the plugin can call the Ant
 * Service: `api.anthropic.com`
 * Data sent: Site URL, title, tagline (same as above)
 * When: Only when you click "Auto-Populate" and have entered an API key
-* Privacy: [anthropic.com/privacy](https://www.anthropic.com/privacy)
+* Privacy: See https://www.anthropic.com/legal/privacy
 
 **3. Plugin Updates (automatic)**
 The plugin checks for available updates from the Rootz update server:
@@ -107,15 +125,37 @@ The plugin does this automatically on activation. If `/.well-known/ai` returns a
 
 == Screenshots ==
 
-1. Settings page — Identity tab with organization details and digital identity
-2. Settings page — Content tab with endpoint configuration and assertion types
-3. Settings page — Policies tab with content licensing and AI training controls
-4. Tools & Preview tab showing all v1.2 endpoints with live status
-5. What AI Sees viewer — live preview of your ai.json output
-6. Analytics tab showing AI agent access metrics
-7. Account & Wallet tab with plugin wallet and owner identity
+1. What AI Sees — live preview of your ai.json manifest that AI agents read
+2. Identity — configure your organization name, mission, sector, and digital identity
+3. Content — control which pages, posts, and media AI agents can access
+4. Policies — set content licensing, quoting permissions, and AI training controls
+5. Account & Wallet — plugin wallet, network status, subscription, and AI proxy settings
 
 == Changelog ==
+
+= 2.4.0 =
+* New: Adnet tab — enable verified advertising and configure your publisher wallet
+* New: Adnet Ad Slot Gutenberg block — place cryptographically-verified ad units on any post or page
+* New: adnet-rivets.js — browser+domain identity layer for IAB-standard viewability verification (loads only when Adnet enabled)
+* New: Privacy policy disclosure registered in WP Privacy tool when Adnet is enabled
+* Disclosure: Adnet feature connects to adnet.geistm.com (documented in Third-Party Services, disabled by default)
+
+= 2.3.3 =
+* Fix: License class now included in WP.org distribution (subscription and licensing features restored)
+* Fix: Stripe checkout redirects back to user's WordPress site after payment
+* New: Auto-register site wallet when owner identity is saved (eliminates manual registration step)
+* New: Post-checkout auto-activation detects return from Stripe and refreshes license immediately
+* UX: Renamed Owner Identity label to License Key / Owner Identity for clarity
+
+= 2.3.2 =
+* Fix: Moved inline network-status script to wp_add_inline_script() with wp_localize_script() for translations
+* Fix: Removed Domain Path header (not needed for WP.org-hosted plugins)
+* Fix: Updated Anthropic privacy URL to working path
+* All view template variables prefixed with rootz_ per WordPress coding standards
+* Security: Sanitize nonce inputs with sanitize_text_field(wp_unslash()) before wp_verify_nonce
+* Security: REST /status and /context endpoints now require manage_options permission
+* Security: JSON-LD output no longer uses JSON_UNESCAPED_SLASHES to prevent script context breakout
+* WordPress.org compliance: License infrastructure made optional (excluded from WP.org distribution)
 
 = 2.2.1 =
 * CRITICAL FIX: Saving one settings tab no longer resets fields on other tabs
@@ -197,6 +237,9 @@ The plugin does this automatically on activation. If `/.well-known/ai` returns a
 * AI training opt-in/opt-out
 
 == Upgrade Notice ==
+
+= 2.4.0 =
+Adds optional Adnet verified advertising tab and Gutenberg block. Adnet is disabled by default — no behaviour change unless you enable it in Settings → AI Discovery → Adnet.
 
 = 2.1.1 =
 WordPress Plugin Check compliance fixes, improved output escaping, and script defer loading.
