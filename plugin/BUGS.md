@@ -40,6 +40,15 @@ Tracking known bugs, their root causes, and fix status.
 - **Workaround**: Admin visits Settings > AI Discovery > Viewer tab and re-signs the manifest. Or use WP-CLI: `wp transient delete rootz_ai_json_cache && wp option delete rootz_signed_manifest`.
 - **Fix needed**: Clear `rootz_signed_manifest` and `rootz_ai_json_cache` on plugin upgrade via the `upgrader_process_complete` hook.
 - **Location**: `includes/class-rootz-ai-json.php` lines 22-31, needs upgrade hook in `rootz-ai-discovery.php`
+- **Still reproducing 2026-06-09**: On discover.rootz.global, plugin header + `/llms.txt` footer report **2.3.3** while `/.well-known/ai` `generator.version` reports **2.3.2** (stale signed-manifest cache). Cosmetic only; re-signing the manifest in the Viewer tab clears it.
+
+## Not a Bug (documented to prevent re-investigation)
+
+### REST `/status` and `/context` return HTTP 401 to logged-out requests — INTENDED
+- **Confirmed**: 2026-06-09 (status test)
+- **Behavior**: `GET /wp-json/rootz/v1/status` and `/context` return `401 rest_forbidden` ("Sorry, you are not allowed to do that.") for unauthenticated/AI-agent requests.
+- **Why it's correct**: In v2.3.1/2.3.2 (WordPress.org review), these two endpoints were deliberately changed from `__return_true` to `current_user_can('manage_options')`. They are admin management/setup console endpoints, not agent-facing tools. WP.org flagged public exposure as a security issue.
+- **Do not "fix" by reverting to `__return_true`** — that regresses the WordPress.org-approved security posture. The seven agent-facing endpoints (static discovery + `searchContent`, `getPage`, `verifyPageHash`, `tools`) are the public surface and remain signed and reachable.
 
 ## Patterns to Avoid
 

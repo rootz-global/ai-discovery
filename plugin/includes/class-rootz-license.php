@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * License checking and subscription management via rootz.global API.
+ */
 class Rootz_License {
 
     const API_BASE      = 'https://rootz.global/api/license';

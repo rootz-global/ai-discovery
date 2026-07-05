@@ -20,7 +20,7 @@ provenance — the website learns to speak AI.
 
 ## Plugin Version & Spec
 
-- **Plugin**: Rootz AI Discovery v2.3.0
+- **Plugin**: Rootz AI Discovery v2.3.3
 - **Standard**: AI Discovery Standard v1.2.0
 - **License**: GPLv2+ (plugin), CC-BY-4.0 (standard specification)
 - **Requires**: WordPress 6.0+, PHP 7.4+
@@ -80,7 +80,7 @@ training set, the provenance travels with it:
 },
 "_provenance": {
     "origin": "discover.rootz.global",
-    "servedBy": "rootz-ai-discovery/2.3.0",
+    "servedBy": "rootz-ai-discovery/2.3.3",
     "signer": "0xD089...",
     "specVersion": "1.2.0",
     "standard": "https://rootz.global/ai-discovery"
@@ -104,13 +104,22 @@ training set, the provenance travels with it:
 
 ### Interactive REST API Tools
 
-| Tool | Endpoint | Parameters | Purpose |
-|------|----------|------------|---------|
-| **searchContent** | `GET /wp-json/rootz/v1/search` | `q` (required), `limit`, `offset`, `type` | Search site content with pagination |
-| **getPage** | `GET /wp-json/rootz/v1/page` | `path` (required) | Read any page as structured markdown with provenance |
-| **verifyPageHash** | `GET /wp-json/rootz/v1/verify` | `page` (required) | Verify content integrity against signed manifest |
-| **getStatus** | `GET /wp-json/rootz/v1/status` | none | Site AI readiness score (0-100, graded A-F) |
-| **getContext** | `GET /wp-json/rootz/v1/context` | none | AI assistant context (this info + live status) |
+| Tool | Endpoint | Parameters | Purpose | Access |
+|------|----------|------------|---------|--------|
+| **searchContent** | `GET /wp-json/rootz/v1/search` | `q` (required), `limit`, `offset`, `type` | Search site content with pagination | Public |
+| **getPage** | `GET /wp-json/rootz/v1/page` | `path` (required) | Read any page as structured markdown with provenance | Public |
+| **verifyPageHash** | `GET /wp-json/rootz/v1/verify` | `page` (required) | Verify content integrity against signed manifest | Public |
+| **getStatus** | `GET /wp-json/rootz/v1/status` | none | Site AI readiness score (0-100, graded A-F) | **Admin only** |
+| **getContext** | `GET /wp-json/rootz/v1/context` | none | AI assistant context (this info + live status) | **Admin only** |
+
+> **Access note (v2.3.1+):** `getStatus` and `getContext` are **admin-only** —
+> they require `current_user_can('manage_options')` and return HTTP 401
+> (`rest_forbidden`) to logged-out/agent requests. This was changed from public
+> (`__return_true`) during the WordPress.org review: they are management/setup
+> console endpoints, not agent-facing tools. A 401 on these two from an
+> unauthenticated request is **expected behavior, not a bug**. The seven
+> agent-facing endpoints (static discovery + searchContent, getPage,
+> verifyPageHash, tools) remain public and signed.
 
 ### The AI Agent Flow
 
@@ -166,7 +175,7 @@ Response:
     },
     "_origin": { "domain": "...", "publishedAt": "...", "modifiedAt": "...", "servedAt": "...", "signer": "..." },
     "_freshness": { "maxAge": 86400, "freshUntil": "...", "refreshPolicy": "daily", "contentAge": "6.3 days" },
-    "_provenance": { "origin": "...", "servedBy": "rootz-ai-discovery/2.3.0", "signer": "...", ... },
+    "_provenance": { "origin": "...", "servedBy": "rootz-ai-discovery/2.3.3", "signer": "...", ... },
     "_signature": { "signer": "...", "contentHash": "...", "signature": "0x...", "method": "ecdsa-secp256k1" }
 }
 ```
@@ -259,8 +268,16 @@ Owner Identity Contract (Polygon)
 ### Key Wallets
 | Wallet | Address | Purpose |
 |--------|---------|---------|
-| Deployer/Funder | `0x86670C5C580BBCCf21EbA5eaaEbCc3087bb37A19` | Deploys contracts, funds gas (~71 POL) |
+| **Licensing SSA** | `0xD2FC0141165bc6019E8079c1c68E44d581136b59` | Mints identity contracts for subscribers (on rootz.global server at `/opt/rootz-ssa/`, port 3022) |
+| Deployer (Trezor) | `0x86670C5C580BBCCf21EbA5eaaEbCc3087bb37A19` | Steven's hardware wallet, deploys contracts (~71 POL) |
 | Lab Plugin Wallet | `0xD08914339B176C36C49D9827733599e1c4e5DAfF` | discover.rootz.global plugin instance |
+
+### Licensing SSA (rootz.global server — 129.158.237.179)
+The identity minting wallet runs as a **Rootz SSA** at `/opt/rootz-ssa/` on the rootz.global server.
+Full V6 stack managed by pm2. See `/opt/rootz-ssa/ai.context.md` for API details.
+- API: `localhost:3022` (same server as harness/rootz.global)
+- Credits: auto-purchased by credit-monitor daemon
+- Already minted: `0x952248299364b00BC0C09655e1343FA1f91C6C94`
 
 ## AI Proxy Integration
 
@@ -464,7 +481,7 @@ rootz-ai-discovery/
 - **getPage caching**: Optional transient cache per-page for high-traffic sites
 - **Plugin v2.0 phases 2-5**: See `docs/DESIGN-plugin-v2-tools-auth-metrics.md`
 
-### Architecture Decisions (v2.3.0)
+### Architecture Decisions (v2.3.3)
 - getPage returns content in real time (no cache) — freshness metadata handles staleness
 - Freshness is adaptive to content age, not a fixed TTL
 - Origin/provenance blocks travel with the content, not just in HTTP headers
@@ -472,6 +489,34 @@ rootz-ai-discovery/
 - Pagination uses offset (not cursor) for simplicity — WordPress WP_Query native support
 
 ## Recent Changes
+
+### v2.3.3 (current — deployed to discover.rootz.global)
+- **License class restored in WP.org distribution**: subscription/licensing
+  features work in the WP.org build again (was excluded in v2.3.1).
+- **Stripe checkout return**: redirects back to the user's WordPress site after
+  payment; post-checkout auto-activation refreshes the license immediately.
+- **Auto-register site wallet** when the owner identity is saved (no manual
+  registration step).
+- **UX**: "Owner Identity" label renamed to "License Key / Owner Identity".
+
+### v2.3.2 (WordPress.org review fixes, part 2)
+- **Security: `/status` and `/context` REST endpoints now require
+  `manage_options`** (changed from public `__return_true`). These are admin
+  management/setup endpoints — a 401 to unauthenticated/agent requests is
+  expected. See the Access note in the REST tools table above.
+- **Security**: nonce inputs sanitized with `sanitize_text_field(wp_unslash())`
+  before `wp_verify_nonce()`; JSON-LD output no longer uses
+  `JSON_UNESCAPED_SLASHES` (prevents script-context breakout).
+- All view template variables prefixed with `rootz_` (PHPCS naming).
+- Moved inline network-status script to `wp_add_inline_script()` +
+  `wp_localize_script()`; removed Domain Path header.
+- License infrastructure made optional / excluded from WP.org distribution.
+
+### v2.3.1 (WordPress.org review fixes, part 1 — Mar 11, 2026)
+- First pass on WP.org Plugin Directory review feedback: nonce sanitization,
+  REST permission callbacks, JSON-LD escaping, license class isolation,
+  ~200 view variables prefixed. PCP: 0 errors. See context archive
+  `2026-03-11-wporg-review-fixes-v231-submission.md`.
 
 ### v2.3.0 (Mar 4, 2026)
 - **`getPage` tool**: Read any published page/post as structured markdown with

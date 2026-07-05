@@ -3,6 +3,52 @@
 All notable changes to the Rootz AI Discovery plugin are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.3.3] — 2026-03 (current; deployed to discover.rootz.global)
+
+### Fixed
+- License class now included in the WordPress.org distribution — subscription and licensing features restored (had been excluded in 2.3.1 for review).
+- Stripe checkout now redirects back to the user's WordPress site after payment.
+
+### Added
+- Auto-register the site wallet when the owner identity is saved (eliminates the manual registration step).
+- Post-checkout auto-activation: detects return from Stripe and refreshes the license immediately.
+
+### Changed
+- Renamed the "Owner Identity" label to "License Key / Owner Identity" for clarity.
+
+## [2.3.2] — 2026-03 (WordPress.org review fixes, part 2)
+
+### Security
+- **REST `/status` and `/context` endpoints now require `manage_options`** (changed from public `__return_true`). They are admin management/setup endpoints; unauthenticated and AI-agent requests now receive HTTP 401 (`rest_forbidden`) by design. The seven agent-facing endpoints (static discovery + searchContent, getPage, verifyPageHash, tools) remain public and signed.
+- Sanitize nonce inputs with `sanitize_text_field( wp_unslash( ... ) )` before `wp_verify_nonce()` (6 locations).
+- JSON-LD output no longer uses `JSON_UNESCAPED_SLASHES`, preventing `</script>` context breakout.
+
+### Fixed
+- Moved inline network-status script to `wp_add_inline_script()` with `wp_localize_script()` for translatable strings.
+- Removed the Domain Path header (not needed for WP.org-hosted plugins); updated Anthropic privacy URL.
+
+### Changed
+- Prefixed ~200 view-template local variables with `rootz_` per WordPress/PHPCS naming standards.
+- License infrastructure made optional and excluded from the WordPress.org distribution.
+
+## [2.3.1] — 2026-03-11 (WordPress.org review fixes, part 1)
+
+### Fixed
+- First pass on WordPress.org Plugin Directory review feedback across 5 categories: nonce sanitization, REST permission callbacks, JSON-LD escaping, license-class isolation (`class_exists()` guards), and PHPCS variable prefixing.
+- WordPress Plugin Check (PCP): 0 errors (32 advisory warnings).
+- Removed `BUGS.md` from the WordPress.org zip (PCP `unexpected_markdown_file`).
+
+**Reference**: context archive `2026-03-11-wporg-review-fixes-v231-submission.md`.
+
+## [2.3.0] — 2026-03-04
+
+### Added
+- **`getPage` tool** (`/wp-json/rootz/v1/page`): read any published page/post as structured markdown with origin provenance, content hash, freshness metadata, policy permissions, and an ECDSA signature — the "conversation mode" tool. Tool count 8 → 9.
+- **Freshness metadata (`_freshness`)**: adaptive shelf life on content responses (1 hour for recently edited, up to 30 days for stable).
+- **Origin provenance (`_origin` + `_provenance`)**: embedded in every dynamic response (domain, publishedAt, modifiedAt, servedAt, signer); survives scraping and caching.
+- **searchContent pagination**: `offset` parameter plus `totalFound`, `hasMore`, `nextOffset`; limit raised to 50. Added `type` filter (`post`/`page`).
+- **llms.txt / llms-full.txt signed generation** (spec-compliant, ECDSA footer) with full Content-tab admin settings and help tips on every setting.
+
 ## [2.2.1] — 2026-03-02
 
 ### Fixed
