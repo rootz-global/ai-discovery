@@ -48,7 +48,7 @@ $rootz_sign_url      = wp_nonce_url(
 			'tab'                 => 'viewer',
 			'rootz_sign_manifest' => '1',
 		),
-		admin_url( 'options-general.php' )
+		admin_url( 'admin.php' )
 	),
 	'rootz_sign_manifest'
 );

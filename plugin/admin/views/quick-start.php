@@ -27,7 +27,7 @@ $rootz_populate_url = add_query_arg(
 		'page' => 'rootz-ai-discovery',
 		'tab'  => 'account',
 	),
-	admin_url( 'options-general.php' )
+	admin_url( 'admin.php' )
 );
 ?>
 <div class="rootz-quickstart">
@@ -47,7 +47,7 @@ $rootz_populate_url = add_query_arg(
 							'tab'                      => 'viewer',
 							'rootz_dismiss_quickstart' => '1',
 						),
-						admin_url( 'options-general.php' )
+						admin_url( 'admin.php' )
 					),
 					'rootz_dismiss_quickstart'
 				)
@@ -115,7 +115,7 @@ $rootz_populate_url = add_query_arg(
 							'page' => 'rootz-ai-discovery',
 							'tab'  => $rootz_item['tab'],
 						),
-						admin_url( 'options-general.php' )
+						admin_url( 'admin.php' )
 					);
 				}
 				?>
