@@ -921,7 +921,7 @@ class Rootz_Rest_Api {
 		if ( $signer->has_key() ) {
 			$signing_score += 5;
 			$signing_detail = 'Wallet active';
-			if ( Rootz_Signer::has_gmp() ) {
+			if ( Rootz_Signer::signing_available() ) {
 				$signing_score += 5;
 				$signing_detail = 'Wallet + signing active';
 			}
@@ -1364,7 +1364,7 @@ class Rootz_Rest_Api {
 	 */
 	private function sign_response( $data ) {
 		$signer = new Rootz_Signer();
-		if ( $signer->has_key() && Rootz_Signer::has_gmp() ) {
+		if ( $signer->has_key() && Rootz_Signer::signing_available() ) {
 			$data['_signature'] = $signer->sign_content( $data );
 		} else {
 			$content_json       = wp_json_encode( $data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );

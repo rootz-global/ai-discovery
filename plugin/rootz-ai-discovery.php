@@ -103,7 +103,7 @@ function rootz_ai_discovery_activate() {
 	rootz_ai_discovery_clear_all_caches();
 
 	// Generate signing key if GMP is available and no key exists yet.
-	if ( Rootz_Signer::has_gmp() ) {
+	if ( Rootz_Signer::signing_available() ) {
 		$signer = new Rootz_Signer();
 		if ( ! $signer->has_key() ) {
 			$signer->generate_key();
@@ -601,7 +601,7 @@ function rootz_ai_discovery_sign_manifest() {
 
 	// Sign with plugin wallet.
 	$signer = new Rootz_Signer();
-	if ( $signer->has_key() && Rootz_Signer::has_gmp() ) {
+	if ( $signer->has_key() && Rootz_Signer::signing_available() ) {
 		$data['_signature']               = $signer->sign_content( $data );
 		$data['_signature']['approvedBy'] = 'admin';
 	} else {

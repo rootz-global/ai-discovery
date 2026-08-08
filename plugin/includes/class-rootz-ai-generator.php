@@ -70,7 +70,7 @@ class Rootz_Ai_Generator {
 	 */
 	public function is_available() {
 		// Available if: plugin has a wallet (with GMP for signing) OR user has own API key.
-		return ( Rootz_Signer::has_stored_key() && Rootz_Signer::has_gmp() )
+		return ( Rootz_Signer::has_stored_key() && Rootz_Signer::signing_available() )
 			|| ! empty( $this->direct_api_key );
 	}
 
@@ -80,7 +80,7 @@ class Rootz_Ai_Generator {
 	 * @return bool
 	 */
 	public function has_proxy() {
-		return Rootz_Signer::has_stored_key() && Rootz_Signer::has_gmp();
+		return Rootz_Signer::has_stored_key() && Rootz_Signer::signing_available();
 	}
 
 	/**

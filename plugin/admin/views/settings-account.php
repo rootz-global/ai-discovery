@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 $rootz_has_gmp         = Rootz_Signer::has_gmp();
 $rootz_signing_address = Rootz_Signer::stored_address();
 $rootz_has_stored_key  = Rootz_Signer::has_stored_key();
-$rootz_can_sign        = $rootz_has_gmp && $rootz_has_stored_key;
+$rootz_can_sign        = Rootz_Signer::signing_available() && $rootz_has_stored_key;
 $rootz_wallet_address  = get_option( 'rootz_plugin_wallet', '' );
 // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only flag from nonce-verified POST handler redirect.
 $rootz_auto_populate = isset( $_GET['auto-populate'] ) && '1' === $_GET['auto-populate'];
