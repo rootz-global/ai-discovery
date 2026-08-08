@@ -35,19 +35,177 @@ class Rootz_Admin {
 			add_action( 'update_option_rootz_owner_identity', array( $this, 'auto_register_on_identity_save' ), 10, 2 );
 		}
 
+		// First-run: take the operator to the score instead of leaving them on
+		// the plugins list wondering whether anything happened.
+		add_action( 'admin_init', array( $this, 'maybe_redirect_after_activation' ), 1 );
+		add_action( 'admin_notices', array( $this, 'first_run_notice' ) );
+
+		// Any settings change invalidates the cached score.
+		add_action( 'updated_option', array( $this, 'flush_score_on_option_change' ) );
+
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
 	/**
-	 * Add the settings page to the WordPress admin menu.
+	 * Drop the cached score whenever one of our options changes.
+	 *
+	 * @param string $option Option name that was updated.
+	 */
+	public function flush_score_on_option_change( $option ) {
+		if ( is_string( $option ) && 0 === strpos( $option, 'rootz_' ) ) {
+			Rootz_Score::flush();
+		}
+	}
+
+	/**
+	 * After a single-site activation, send the operator straight to their score.
+	 *
+	 * Deliberately conservative: never redirect on bulk activation, never on
+	 * network activation, and only ever once. A plugin that hijacks the browser
+	 * on every load is worse than one that hides.
+	 */
+	public function maybe_redirect_after_activation() {
+		if ( ! get_transient( 'rootz_activation_redirect' ) ) {
+			return;
+		}
+		delete_transient( 'rootz_activation_redirect' );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading WordPress's own bulk-activation flag, no state change.
+		if ( isset( $_GET['activate-multi'] ) || is_network_admin() ) {
+			return;
+		}
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		wp_safe_redirect( self::page_url( 'viewer', array( 'rootz-welcome' => '1' ) ) );
+		exit;
+	}
+
+	/**
+	 * Show a one-time notice with the score and the single highest-value next step.
+	 *
+	 * Only on our own screens, and only until the operator has done something.
+	 */
+	public function first_run_notice() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		$screen = get_current_screen();
+		if ( ! $screen || false === strpos( $screen->id, 'rootz-ai-discovery' ) ) {
+			return;
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Presentational flag only, no state change.
+		if ( ! isset( $_GET['rootz-welcome'] ) ) {
+			return;
+		}
+
+		$score = Rootz_Score::calculate();
+		$steps = Rootz_Score::next_steps( 1 );
+
+		echo '<div class="notice notice-info is-dismissible"><p><strong>';
+		printf(
+			/* translators: 1: letter grade, 2: score, 3: maximum score. */
+			esc_html__( 'AI Discovery is live. Your site scores %2$s of %3$s — grade %1$s.', 'rootz-ai-discovery' ),
+			esc_html( $score['grade'] ),
+			esc_html( $score['score'] ),
+			esc_html( $score['max'] )
+		);
+		echo '</strong> ';
+		esc_html_e( 'Your structured data is already being served to AI agents.', 'rootz-ai-discovery' );
+		echo '</p>';
+
+		if ( ! empty( $steps[0] ) ) {
+			echo '<p>';
+			printf(
+				/* translators: 1: name of the next check to complete, 2: points it is worth. */
+				esc_html__( 'Biggest remaining gain: %1$s (+%2$d points).', 'rootz-ai-discovery' ),
+				esc_html( $steps[0]['label'] ),
+				(int) ( isset( $steps[0]['points'] ) ? $steps[0]['points'] : 0 )
+			);
+			if ( ! empty( $steps[0]['link'] ) ) {
+				printf(
+					' <a href="%s">%s &rarr;</a>',
+					esc_url( self::page_url( $steps[0]['link'] ) ),
+					esc_html__( 'Fix it', 'rootz-ai-discovery' )
+				);
+			}
+			echo '</p>';
+		}
+		echo '</div>';
+	}
+
+	/**
+	 * Build an admin URL for this plugin's page, optionally on a given tab.
+	 *
+	 * Everything that links to the plugin goes through here, so the page can be
+	 * moved in the menu without hunting down a dozen hard-coded URLs.
+	 *
+	 * @param string $tab   Optional tab slug.
+	 * @param array  $extra Optional extra query args.
+	 * @return string
+	 */
+	public static function page_url( $tab = '', $extra = array() ) {
+		$args = array( 'page' => 'rootz-ai-discovery' );
+		if ( $tab ) {
+			$args['tab'] = $tab;
+		}
+		return add_query_arg( array_merge( $args, $extra ), admin_url( 'admin.php' ) );
+	}
+
+	/**
+	 * Add the plugin to the WordPress admin menu.
+	 *
+	 * This is a TOP-LEVEL menu on purpose. Until v2.5.0 the plugin lived under
+	 * Settings → AI Discovery, which meant that after activating it a site owner
+	 * saw no evidence it existed anywhere in wp-admin. The plugin's entire value
+	 * is machine-facing, so if the human is never shown anything, the only
+	 * rational thing for them to do is deactivate it.
 	 */
 	public function add_menu_page() {
+		$score = Rootz_Score::calculate();
+
+		// Show the grade in the menu bubble — a standing reason to click.
+		$badge = sprintf(
+			' <span class="awaiting-mod rootz-grade-bubble rootz-grade-%1$s"><span class="rootz-grade-letter">%1$s</span></span>',
+			esc_attr( $score['grade'] )
+		);
+
+		add_menu_page(
+			__( 'AI Discovery', 'rootz-ai-discovery' ),
+			__( 'AI Discovery', 'rootz-ai-discovery' ) . $badge,
+			'manage_options',
+			'rootz-ai-discovery',
+			array( $this, 'render_page' ),
+			'dashicons-rest-api',
+			// Just below Settings, above Plugins-adjacent clutter.
+			80
+		);
+
+		// Keep a pointer where the plugin used to live, so anyone who bookmarked
+		// the old location or wrote it down in a runbook still lands correctly.
 		add_options_page(
 			__( 'AI Discovery', 'rootz-ai-discovery' ),
 			__( 'AI Discovery', 'rootz-ai-discovery' ),
 			'manage_options',
-			'rootz-ai-discovery',
-			array( $this, 'render_page' )
+			'rootz-ai-discovery-redirect',
+			array( $this, 'render_legacy_redirect' )
+		);
+	}
+
+	/**
+	 * Bounce the old Settings → AI Discovery location to the new top-level page.
+	 */
+	public function render_legacy_redirect() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		printf(
+			'<div class="wrap"><h1>%s</h1><p>%s</p><p><a class="button button-primary" href="%s">%s</a></p></div>',
+			esc_html__( 'AI Discovery', 'rootz-ai-discovery' ),
+			esc_html__( 'AI Discovery now has its own menu in the sidebar.', 'rootz-ai-discovery' ),
+			esc_url( self::page_url() ),
+			esc_html__( 'Open AI Discovery', 'rootz-ai-discovery' )
 		);
 	}
 
@@ -404,7 +562,7 @@ class Rootz_Admin {
 					'tab'           => 'account',
 					'auto-populate' => '1',
 				),
-				admin_url( 'options-general.php' )
+				admin_url( 'admin.php' )
 			)
 		);
 		exit;
@@ -440,7 +598,7 @@ class Rootz_Admin {
 					'tab'           => 'account',
 					'key-generated' => '1',
 				),
-				admin_url( 'options-general.php' )
+				admin_url( 'admin.php' )
 			)
 		);
 		exit;
@@ -502,7 +660,7 @@ class Rootz_Admin {
 					'tab'    => 'viewer',
 					'signed' => '1',
 				),
-				admin_url( 'options-general.php' )
+				admin_url( 'admin.php' )
 			)
 		);
 		exit;
@@ -626,7 +784,7 @@ class Rootz_Admin {
 					'page' => 'rootz-ai-discovery',
 					'tab'  => 'viewer',
 				),
-				admin_url( 'options-general.php' )
+				admin_url( 'admin.php' )
 			)
 		);
 		exit;
@@ -654,7 +812,7 @@ class Rootz_Admin {
 					'tab'               => 'account',
 					'license-refreshed' => '1',
 				),
-				admin_url( 'options-general.php' )
+				admin_url( 'admin.php' )
 			)
 		);
 		exit;
@@ -687,7 +845,7 @@ class Rootz_Admin {
 					'tab'             => 'account',
 					'site-registered' => '1',
 				),
-				admin_url( 'options-general.php' )
+				admin_url( 'admin.php' )
 			)
 		);
 		exit;
@@ -781,7 +939,18 @@ class Rootz_Admin {
 	 * @param string $hook The current admin page hook suffix.
 	 */
 	public function enqueue_assets( $hook ) {
-		if ( 'settings_page_rootz-ai-discovery' !== $hook ) {
+		/*
+		 * The screen hook depends on where the page is registered. It was
+		 * 'settings_page_…' while the plugin lived under Settings; as a top-level
+		 * menu it is 'toplevel_page_…'. Both are accepted so that assets keep
+		 * loading regardless, and so an old bookmark does not land on an unstyled
+		 * page.
+		 */
+		$rootz_screens = array(
+			'toplevel_page_rootz-ai-discovery',
+			'settings_page_rootz-ai-discovery',
+		);
+		if ( ! in_array( $hook, $rootz_screens, true ) ) {
 			return;
 		}
 		wp_enqueue_style( 'rootz-admin', ROOTZ_AI_DISCOVERY_URL . 'admin/assets/admin.css', array(), ROOTZ_AI_DISCOVERY_VERSION );
@@ -900,9 +1069,29 @@ JSEOF;
 			'policies'  => __( 'Policies', 'rootz-ai-discovery' ),
 			'tools'     => __( 'Tools & Preview', 'rootz-ai-discovery' ),
 			'analytics' => __( 'Analytics', 'rootz-ai-discovery' ),
-			'adnet'     => __( 'Adnet', 'rootz-ai-discovery' ),
 			'account'   => __( 'Account & Wallet', 'rootz-ai-discovery' ),
 		);
+
+		/*
+		 * Adnet is an optional advertising integration, off by default. A brand new
+		 * install should not open on a screen offering to put ads on the site — that
+		 * is not what someone downloading an AI-discovery plugin came for, and it is
+		 * the wrong first impression for the feature that pays the bills later. The
+		 * tab appears once Adnet is switched on, or for anyone who goes looking via
+		 * the Account tab.
+		 */
+		$rootz_adnet_visible = '1' === get_option( 'rootz_adnet_enabled', '0' )
+			|| 'adnet' === $active_tab
+			/**
+			 * Filters whether the Adnet tab is shown in the admin.
+			 *
+			 * @param bool $visible Whether to show the tab.
+			 */
+			|| apply_filters( 'rootz_show_adnet_tab', false );
+
+		if ( $rootz_adnet_visible ) {
+			$tabs['adnet'] = __( 'Adnet', 'rootz-ai-discovery' );
+		}
 
 		?>
 		<div class="wrap rootz-admin-wrap">
@@ -913,7 +1102,7 @@ JSEOF;
 
 			<nav class="nav-tab-wrapper">
 				<?php foreach ( $tabs as $tab_key => $tab_label ) : ?>
-					<a href="<?php echo esc_url( add_query_arg( 'tab', $tab_key, admin_url( 'options-general.php?page=rootz-ai-discovery' ) ) ); ?>"
+					<a href="<?php echo esc_url( add_query_arg( 'tab', $tab_key, admin_url( 'admin.php?page=rootz-ai-discovery' ) ) ); ?>"
 						class="nav-tab <?php echo $active_tab === $tab_key ? 'nav-tab-active' : ''; ?>">
 						<?php echo esc_html( $tab_label ); ?>
 					</a>
@@ -968,7 +1157,7 @@ JSEOF;
 								'tab'        => 'viewer',
 								'show-guide' => '1',
 							),
-							admin_url( 'options-general.php' )
+							admin_url( 'admin.php' )
 						)
 					);
 					?>

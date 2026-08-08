@@ -331,3 +331,23 @@
     align-items: center;
     margin-bottom: 8px;
 }
+
+/* ── Grade bubble in the admin menu ──────────────────────────────────────────
+   Reuses WordPress's own comment-count bubble so it inherits core styling and
+   sits correctly in both expanded and collapsed sidebar states. Colour is keyed
+   to the grade: a red F should look like something to act on, an A should not. */
+.rootz-grade-bubble {
+    font-weight: 700;
+}
+
+.rootz-grade-bubble .rootz-grade-letter {
+    display: inline-block;
+    min-width: 10px;
+    text-align: center;
+}
+
+#adminmenu .rootz-grade-A { background: #16a34a; }
+#adminmenu .rootz-grade-B { background: #65a30d; }
+#adminmenu .rootz-grade-C { background: #ca8a04; }
+#adminmenu .rootz-grade-D { background: #ea580c; }
+#adminmenu .rootz-grade-F { background: #dc2626; }

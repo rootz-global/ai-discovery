@@ -558,7 +558,7 @@ class Rootz_Llms_Txt {
 		$lines[]      = '_Content hash: sha256:' . $content_hash . '_';
 
 		// Sign if wallet + GMP available.
-		if ( ! empty( $address ) && Rootz_Signer::has_gmp() ) {
+		if ( ! empty( $address ) && Rootz_Signer::signing_available() ) {
 			$signer = new Rootz_Signer();
 			if ( $signer->has_key() ) {
 				$sig = $signer->sign( $content_hash );

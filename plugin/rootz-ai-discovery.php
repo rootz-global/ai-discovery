@@ -3,7 +3,7 @@
  * Plugin Name:       Rootz AI Discovery
  * Plugin URI:        https://rootz.global/ai-discovery
  * Description:       Make your WordPress site AI-agent-ready. Serves /.well-known/ai with structured identity, policies, content, and WebMCP tools so AI agents can discover, understand, and interact with your site properly.
- * Version:           2.4.0
+ * Version:           2.5.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Rootz Corp
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ROOTZ_AI_DISCOVERY_VERSION', '2.4.0' );
+define( 'ROOTZ_AI_DISCOVERY_VERSION', '2.5.0' );
 define( 'ROOTZ_AI_DISCOVERY_SPEC', '1.2.0' );
 define( 'ROOTZ_AI_DISCOVERY_FILE', __FILE__ );
 define( 'ROOTZ_AI_DISCOVERY_DIR', plugin_dir_path( __FILE__ ) );
@@ -103,7 +103,7 @@ function rootz_ai_discovery_activate() {
 	rootz_ai_discovery_clear_all_caches();
 
 	// Generate signing key if GMP is available and no key exists yet.
-	if ( Rootz_Signer::has_gmp() ) {
+	if ( Rootz_Signer::signing_available() ) {
 		$signer = new Rootz_Signer();
 		if ( ! $signer->has_key() ) {
 			$signer->generate_key();
@@ -112,8 +112,47 @@ function rootz_ai_discovery_activate() {
 
 	// Create metrics table.
 	Rootz_Metrics::create_table();
+
+	// Record the installed version so upgrades can be detected on later loads.
+	update_option( 'rootz_installed_version', ROOTZ_AI_DISCOVERY_VERSION, false );
+
+	/*
+	 * Flag a one-time redirect to the score. Set as a short transient rather than
+	 * an option so that if anything goes wrong it expires by itself instead of
+	 * hijacking wp-admin forever. Read and deleted by Rootz_Admin.
+	 */
+	set_transient( 'rootz_activation_redirect', 1, 60 );
 }
 register_activation_hook( __FILE__, 'rootz_ai_discovery_activate' );
+
+/**
+ * Handle version upgrades.
+ *
+ * BUG-004: the signed manifest is stored whole in an option and cached in a
+ * transient. Neither was cleared when the plugin updated, so /.well-known/ai kept
+ * reporting the previous version in generator.version — the plugin appeared not
+ * to have updated at all. Clearing both on a version change fixes it for every
+ * future release.
+ */
+function rootz_ai_discovery_maybe_upgrade() {
+	$installed = get_option( 'rootz_installed_version', '' );
+	if ( ROOTZ_AI_DISCOVERY_VERSION === $installed ) {
+		return;
+	}
+
+	delete_option( 'rootz_signed_manifest' );
+	rootz_ai_discovery_clear_all_caches();
+	if ( class_exists( 'Rootz_Score' ) ) {
+		Rootz_Score::flush();
+	}
+
+	// Endpoint rules can change between versions; make sure they are current.
+	rootz_ai_discovery_register_rewrites();
+	flush_rewrite_rules();
+
+	update_option( 'rootz_installed_version', ROOTZ_AI_DISCOVERY_VERSION, false );
+}
+add_action( 'admin_init', 'rootz_ai_discovery_maybe_upgrade' );
 
 /**
  * Deactivation: clean up rewrite rules.
@@ -562,7 +601,7 @@ function rootz_ai_discovery_sign_manifest() {
 
 	// Sign with plugin wallet.
 	$signer = new Rootz_Signer();
-	if ( $signer->has_key() && Rootz_Signer::has_gmp() ) {
+	if ( $signer->has_key() && Rootz_Signer::signing_available() ) {
 		$data['_signature']               = $signer->sign_content( $data );
 		$data['_signature']['approvedBy'] = 'admin';
 	} else {
@@ -638,7 +677,7 @@ function rootz_ai_discovery_manifest_notice() {
 				'tab'                 => 'viewer',
 				'rootz_sign_manifest' => '1',
 			),
-			admin_url( 'options-general.php' )
+			admin_url( 'admin.php' )
 		),
 		'rootz_sign_manifest'
 	);

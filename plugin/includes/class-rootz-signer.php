@@ -15,8 +15,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Load vendor libraries.
-require_once ROOTZ_AI_DISCOVERY_DIR . 'vendor/autoload.php';
+/*
+ * Load vendor libraries if they are present.
+ *
+ * This used to be an unconditional require_once, which meant that a plugin
+ * directory missing vendor/ took the entire site down with a fatal error on
+ * activation — a white screen, on every page, for a feature that is optional.
+ * That can happen from an interrupted upload, a partial unzip, a security
+ * scanner quarantining a file, or a host that strips directories it does not
+ * recognise.
+ *
+ * Everything else in this class already degrades rather than dies when signing
+ * is unavailable (see has_gmp() and its callers). This makes the vendor libs
+ * behave the same way: without them the plugin still serves discovery data, it
+ * simply cannot sign it.
+ */
+if ( file_exists( ROOTZ_AI_DISCOVERY_DIR . 'vendor/autoload.php' ) ) {
+	require_once ROOTZ_AI_DISCOVERY_DIR . 'vendor/autoload.php';
+}
 
 use Elliptic\EC;
 use kornrunner\Keccak;
@@ -58,9 +74,22 @@ class Rootz_Signer {
 	 * Initialize the elliptic curve instance if GMP is available.
 	 */
 	public function __construct() {
-		if ( self::has_gmp() ) {
+		if ( self::signing_available() ) {
 			$this->ec = new EC( 'secp256k1' );
 		}
+	}
+
+	/**
+	 * Whether cryptographic signing can actually run here.
+	 *
+	 * Requires BOTH the GMP extension and the vendored elliptic library. Checking
+	 * only one of the two is how a missing vendor/ turned into a fatal instead of
+	 * a disabled feature.
+	 *
+	 * @return bool
+	 */
+	public static function signing_available() {
+		return self::has_gmp() && class_exists( '\Elliptic\EC' ) && class_exists( '\kornrunner\Keccak' );
 	}
 
 	/**
@@ -116,7 +145,7 @@ class Rootz_Signer {
 	 * @return string The generated Ethereum address.
 	 */
 	public function generate_key() {
-		if ( ! self::has_gmp() || ! $this->ec ) {
+		if ( ! self::signing_available() || ! $this->ec ) {
 			return '';
 		}
 
@@ -140,7 +169,7 @@ class Rootz_Signer {
 	 * @return bool True if key loaded successfully.
 	 */
 	public function load_key() {
-		if ( ! self::has_gmp() || ! $this->ec ) {
+		if ( ! self::signing_available() || ! $this->ec ) {
 			return false;
 		}
 

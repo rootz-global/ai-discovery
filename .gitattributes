@@ -1,0 +1,3 @@
+# The plugin is checked out on Linux hosts and shipped as a zip to WordPress.org.
+# Windows clones must not push CRLF back into PHP that gets diffed on the server.
+* text=auto eol=lf

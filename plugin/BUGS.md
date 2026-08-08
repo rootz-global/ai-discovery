@@ -21,6 +21,15 @@ Tracking known bugs, their root causes, and fix status.
 - **Fix**: Build zips using Python `zipfile` module with explicit forward-slash `arcname`. Never use PowerShell for plugin zips.
 - **Build command**: `python -c "import zipfile, os; ..."` (see build instructions in ai.context.md)
 
+### BUG-004: Signed manifest caches stale version after plugin update
+- **Discovered**: 2026-03-02
+- **Fixed in**: v2.5.0
+- **Symptom**: After updating the plugin, `/.well-known/ai` continued to show the old version number in `generator.version`.
+- **Root cause**: `rootz_signed_manifest` stores a snapshot of the whole ai.json response including the version, and `rootz_ai_json_cache` then caches that. Neither was cleared on update.
+- **Fix**: `rootz_ai_discovery_maybe_upgrade()` on `admin_init` compares `ROOTZ_AI_DISCOVERY_VERSION` against the stored `rootz_installed_version`. On a mismatch it deletes `rootz_signed_manifest`, clears all caches, flushes the score estimate, re-registers rewrite rules and records the new version.
+- **Why a version check rather than `upgrader_process_complete`**: that hook does not fire for manual/FTP updates or WP-CLI in every configuration. Comparing the constant against a stored option catches every path a new version can arrive by.
+- **Files**: `rootz-ai-discovery.php`
+
 ## Open
 
 ### BUG-003: "String did not match expected pattern" on rootz.global scanner
@@ -32,15 +41,14 @@ Tracking known bugs, their root causes, and fix status.
 - **Fix needed**: Better error message and input validation on the rootz.global scanner page.
 - **Location**: `rootz-site-repo/index.mjs` line 348-351, `rootz-site-repo/pages/ai-discovery.html` line 1621
 
-### BUG-004: Signed manifest caches stale version after plugin update
-- **Discovered**: 2026-03-02
-- **Severity**: Medium
-- **Symptom**: After updating the plugin, `/.well-known/ai` continues to show the old version number in the `generator.version` field.
-- **Root cause**: The `rootz_signed_manifest` option stores a snapshot of the entire ai.json response including the version. The `rootz_ai_json_cache` transient then caches this for 1 hour. On plugin update, neither is cleared.
-- **Workaround**: Admin visits Settings > AI Discovery > Viewer tab and re-signs the manifest. Or use WP-CLI: `wp transient delete rootz_ai_json_cache && wp option delete rootz_signed_manifest`.
-- **Fix needed**: Clear `rootz_signed_manifest` and `rootz_ai_json_cache` on plugin upgrade via the `upgrader_process_complete` hook.
-- **Location**: `includes/class-rootz-ai-json.php` lines 22-31, needs upgrade hook in `rootz-ai-discovery.php`
-- **Still reproducing 2026-06-09**: On discover.rootz.global, plugin header + `/llms.txt` footer report **2.3.3** while `/.well-known/ai` `generator.version` reports **2.3.2** (stale signed-manifest cache). Cosmetic only; re-signing the manifest in the Viewer tab clears it.
+### BUG-005: Local score and rootz.global score use different weightings
+- **Discovered**: 2026-08-07
+- **Severity**: Low (confusing, not wrong)
+- **Symptom**: The plugin's in-admin AI Readiness Score and the official score from `rootz.global/api/scan` can differ for the same site.
+- **Root cause**: Two independent implementations. The scanner weights the discovery endpoint at 20 points with separate credit for the HTML link tag, HTTP Link header and content hash; the plugin's local estimate weights the endpoint at 10 and cannot observe its own headers from outside. Local checks total 105 of a 120 denominator, so a fully configured site tops out at 105 locally.
+- **Current handling**: The admin view labels the number "estimated from local settings" and links to the official scan. That is honest, but two numbers under one name still invites a support question.
+- **Fix needed**: Have the plugin fetch and display the official score from `rootz.global/api/scan` (cached), keeping the local estimate only as an offline fallback. That also makes each install a scan event we can count.
+- **Location**: `includes/class-rootz-score.php`, `rootz-site/scanner/scoring.mjs`
 
 ## Not a Bug (documented to prevent re-investigation)
 

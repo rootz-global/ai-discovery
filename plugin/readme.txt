@@ -2,9 +2,9 @@
 Contributors: skswave
 Tags: ai, seo, discovery, structured-data, ai-agent
 Requires at least: 6.0
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 2.4.0
+Stable tag: 2.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -13,6 +13,8 @@ Make your WordPress site AI-agent-ready. Structured identity, policies, content 
 == Description ==
 
 When an AI agent visits your WordPress site today, it has to scrape HTML, guess your organization, and parse legal pages written for humans. **Rootz AI Discovery** fixes this by serving structured, machine-readable data that AI agents can understand instantly.
+
+**You get an AI Readiness Score.** Activate the plugin and it grades your site out of 120 points against the published AI Discovery Standard — then tells you exactly which fixes are worth the most points, and takes you to the right screen to make them. Most sites start around a C. The grade sits in your admin sidebar so you can see it change as you improve.
 
 **What it does:**
 
@@ -132,6 +134,15 @@ The plugin does this automatically on activation. If `/.well-known/ai` returns a
 5. Account & Wallet — plugin wallet, network status, subscription, and AI proxy settings
 
 == Changelog ==
+
+= 2.5.0 =
+* New: AI Discovery now has its own top-level menu, with your current grade shown in the sidebar. Previously it was tucked under Settings, so nothing in wp-admin indicated the plugin was there at all.
+* New: Activating the plugin takes you straight to your AI Readiness Score and tells you the single highest-value thing to fix next.
+* New: Each unfinished check now shows what it is worth in points, so it is clear which fixes matter most.
+* Fix: Updating the plugin no longer leaves `/.well-known/ai` reporting the previous version number (stale signed-manifest cache — BUG-004).
+* Fix: Admin styles now load correctly from the new menu location.
+* Change: The Adnet tab is hidden unless advertising is switched on. The feature is unchanged; it is simply no longer the first thing a new install sees.
+* Compatibility: Tested up to WordPress 7.0.
 
 = 2.4.0 =
 * New: Adnet tab — enable verified advertising and configure your publisher wallet
